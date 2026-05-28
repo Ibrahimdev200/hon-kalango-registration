@@ -271,6 +271,70 @@ header.scrolled .nav-container {
     color: var(--white);
 }
 
+/* Custom styles for the "Join The Movement" CTA button in the header */
+.nav-join-btn {
+    padding: 10px 24px !important;
+    border-radius: 30px;
+    background: linear-gradient(135deg, var(--secondary-color) 0%, #ff8c00 50%, var(--secondary-color) 100%);
+    background-size: 200% auto;
+    color: var(--primary-dark) !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(255, 184, 0, 0.4);
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    animation: gradientMove 4s ease infinite, pulseGlow 2.5s infinite alternate;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Override underline effect for the button */
+.nav-links li a.nav-join-btn::after {
+    display: none !important;
+}
+
+/* Glowing background animations */
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 4px 15px rgba(255, 184, 0, 0.4);
+    }
+    100% {
+        box-shadow: 0 4px 25px rgba(255, 184, 0, 0.8), 0 0 10px rgba(255, 140, 0, 0.4);
+    }
+}
+
+/* Hover transition details */
+.nav-join-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    background-position: right center;
+    color: var(--white) !important;
+    box-shadow: 0 8px 30px rgba(255, 184, 0, 0.9), 0 0 15px rgba(255, 140, 0, 0.6);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Active pressing state */
+.nav-join-btn:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 4px 15px rgba(255, 184, 0, 0.6);
+}
+
 .mobile-menu-btn {
     display: none;
     flex-direction: column;
