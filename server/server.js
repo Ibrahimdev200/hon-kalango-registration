@@ -15,6 +15,43 @@ const SESSION_SECRET = 'kalango_secret_session_key_2027';
 app.use(express.json());
 app.use(cookieParser());
 
+// Diagnostic route to check backend environment and database status
+app.get('/api/diagnose', async (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const keyPath = path.resolve(__dirname, '../firebase-key.json');
+  
+  const status = db.getDBStatus();
+  
+  const diagnostics = {
+    timestamp: new Date().toISOString(),
+    nodeVersion: process.version,
+    env: {
+      has_FIREBASE_SERVICE_ACCOUNT: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      has_FIREBASE_PROJECT_ID: !!process.env.FIREBASE_PROJECT_ID,
+      has_FIREBASE_API_KEY: !!process.env.FIREBASE_API_KEY,
+      FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || 'Not Set'
+    },
+    files: {
+      has_firebase_key_json: fs.existsSync(keyPath)
+    },
+    databaseState: {
+      dbInitialized,
+      ...status
+    }
+  };
+
+  try {
+    await db.initializeDB();
+    diagnostics.connectionTest = 'Success';
+  } catch (err) {
+    diagnostics.connectionTest = 'Failed';
+    diagnostics.error = err.message;
+  }
+
+  return res.json(diagnostics);
+});
+
 // Lazy Database Initialization Middleware for Serverless
 let dbInitialized = false;
 app.use(async (req, res, next) => {

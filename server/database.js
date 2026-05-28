@@ -421,6 +421,13 @@ async function getReferralNetwork() {
   return list;
 }
 
+function getDBStatus() {
+  return {
+    usingAdminSDK,
+    hasDbInstance: !!db
+  };
+}
+
 module.exports = {
   initializeDB,
   checkPVCExists,
@@ -432,5 +439,6 @@ module.exports = {
   getDuplicateAttempts,
   verifyMember,
   getReferralNetwork,
-  hashValue
+  hashValue,
+  getDBStatus
 };
