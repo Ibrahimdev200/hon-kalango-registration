@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ward Member Registration — Hon. Kalango 2027</title>
+  <link rel="stylesheet" href="register-style.css">
+</head>
+<body class="register-body-wrap">
+  <!-- Navigation Header -->
+  <header>
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-text">
+          <h1>Hon. Korite Michael Kalango</h1>
+          <p>Nembe Constituency II 2027</p>
+        </div>
+      </div>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">Main Website</a></li>
+          <li><a href="register.html">Registration Portal</a></li>
+          <li><a href="form-ward.html" class="active">Ward Registration</a></li>
+          <li><a href="form-youth-women.html">Boys & Ladies Registration</a></li>
+          <li><a href="admin.html">Admin Panel</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Ward Member Registration</h2>
+        <p>PVC-holding supporter registration for Hon. Kalango's 2027 grassroots coalition</p>
+      </div>
+
+      <div class="form-body">
+        <!-- Progress Indicator -->
+        <div class="progress-container">
+          <div class="progress-steps">
+            <div class="progress-step-line" id="progressLine"></div>
+            <div class="step-node active" data-step="1">1</div>
+            <div class="step-node" data-step="2">2</div>
+            <div class="step-node" data-step="3">3</div>
+          </div>
+          <span class="progress-label" id="progressLabel">Step 1: Personal Profile</span>
+        </div>
+
+        <!-- Global Alert Messages -->
+        <div class="form-alert form-alert-error" id="formAlertError"></div>
+
+        <!-- Multi-step Form -->
+        <form id="wardForm" novalidate>
+          <input type="hidden" name="form_type" value="ward">
+
+          <!-- STEP 1: Personal Details -->
+          <div class="form-step active" id="step-1">
+            <div class="form-group">
+              <label for="fullName">Full Name <span class="required-star">*</span></label>
+              <input type="text" id="fullName" name="full_name" required placeholder="e.g. John Doe">
+              <div class="field-error-msg">Please enter your full name.</div>
+            </div>
+
+            <div class="form-group half-width">
+              <div>
+                <label for="phoneNumber">Phone Number <span class="required-star">*</span></label>
+                <input type="tel" id="phoneNumber" name="phone_number" required placeholder="e.g. 08012345678">
+                <div class="field-error-msg">Enter a valid Nigerian phone number.</div>
+              </div>
+              <div>
+                <label for="emailAddress">Email Address <span class="text-gray">(Optional)</span></label>
+                <input type="email" id="emailAddress" name="email" placeholder="e.g. john@example.com">
+                <div class="field-error-msg">Enter a valid email address.</div>
+              </div>
+            </div>
+
+            <div class="form-group half-width">
+              <div>
+                <label for="gender">Gender <span class="required-star">*</span></label>
+                <select id="gender" name="gender" required>
+                  <option value="" disabled selected>Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+                <div class="field-error-msg">Please select your gender.</div>
+              </div>
+              <div>
+                <label for="dob">Date of Birth <span class="required-star">*</span></label>
+                <input type="date" id="dob" name="dob" required>
+                <div class="field-error-msg">Please select your date of birth.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: Grassroots Location details & Referral Lead -->
+          <div class="form-step" id="step-2">
+            <div class="form-group">
+              <label for="ward">Select Ward <span class="required-star">*</span></label>
+              <select id="ward" name="ward" required>
+                <option value="" disabled selected>Choose ward in Nembe Constituency II</option>
+                <option value="Ward 4 (Okpoama)">Ward 4 (Okpoama)</option>
+                <option value="Ward 5 (Odioama)">Ward 5 (Odioama)</option>
+                <option value="Ward 6 (Cape Formosa)">Ward 6 (Cape Formosa)</option>
+                <option value="Ward 7 (Onyoma)">Ward 7 (Onyoma)</option>
+                <option value="Ward 8 (Mini)">Ward 8 (Mini)</option>
+                <option value="Ward 9 (Ikensi)">Ward 9 (Ikensi)</option>
+                <option value="Ward 10 (Oluasiri)">Ward 10 (Oluasiri)</option>
+                <option value="Ward 11 (Bassambiri I)">Ward 11 (Bassambiri I)</option>
+                <option value="Ward 12 (Bassambiri II)">Ward 12 (Bassambiri II)</option>
+                <option value="Ward 13 (Bassambiri III)">Ward 13 (Bassambiri III)</option>
+              </select>
+              <div class="field-error-msg">Please select your ward.</div>
+            </div>
+
+            <div class="form-group half-width">
+              <div>
+                <label for="community">Community / Village <span class="required-star">*</span></label>
+                <input type="text" id="community" name="community" required placeholder="e.g. Okpoama Town">
+                <div class="field-error-msg">Please enter your community/village.</div>
+              </div>
+              <div>
+                <label for="pollingUnit">Polling Unit <span class="required-star">*</span></label>
+                <input type="text" id="pollingUnit" name="polling_unit" required placeholder="e.g. PU: 002, School Hall">
+                <div class="field-error-msg">Please enter your polling unit.</div>
+              </div>
+            </div>
+
+            <div class="form-group half-width">
+              <div>
+                <label for="referrerName">Referrer Name <span class="required-star">*</span></label>
+                <input type="text" id="referrerName" name="referrer_name" required placeholder="Name of Ward Leader / Referral">
+                <div class="field-error-msg">Please enter who referred you.</div>
+              </div>
+              <div>
+                <label for="referrerPhone">Referrer Phone <span class="text-gray">(Optional)</span></label>
+                <input type="tel" id="referrerPhone" name="referrer_phone" placeholder="e.g. 08099887766">
+                <div class="field-error-msg">Enter a valid phone number.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: PVC, Banking & Referral list -->
+          <div class="form-step" id="step-3">
+            <div class="form-group">
+              <label for="pvcNumber">Voter's Card Number (PVC) <span class="required-star">*</span></label>
+              <input type="text" id="pvcNumber" name="pvc" required placeholder="Enter your unique PVC number">
+              <div class="field-loading-indicator" id="pvcLoading">Checking database...</div>
+              <div class="field-error-msg" id="pvcError">PVC is required and must be unique.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="bankName">Bank Name <span class="required-star">*</span></label>
+              <select id="bankName" name="bank_name" required>
+                <option value="" disabled selected>Select Bank</option>
+                <option value="Access Bank">Access Bank</option>
+                <option value="FCMB">FCMB</option>
+                <option value="Fidelity Bank">Fidelity Bank</option>
+                <option value="First Bank">First Bank</option>
+                <option value="GTBank">GTBank (Guaranty Trust)</option>
+                <option value="Keystone Bank">Keystone Bank</option>
+                <option value="Kuda Bank">Kuda Bank</option>
+                <option value="Moniepoint">Moniepoint MFB</option>
+                <option value="Opay">OPay</option>
+                <option value="Polaris Bank">Polaris Bank</option>
+                <option value="Stanbic IBTC Bank">Stanbic IBTC Bank</option>
+                <option value="Sterling Bank">Sterling Bank</option>
+                <option value="UBA">UBA (United Bank for Africa)</option>
+                <option value="Union Bank">Union Bank</option>
+                <option value="Wema Bank">Wema Bank</option>
+                <option value="Zenith Bank">Zenith Bank</option>
+              </select>
+              <div class="field-error-msg">Please select your bank.</div>
+            </div>
+
+            <div class="form-group half-width">
+              <div>
+                <label for="accountNumber">Account Number (10 digits) <span class="required-star">*</span></label>
+                <input type="text" id="accountNumber" name="account_number" maxlength="10" required placeholder="e.g. 2008211160">
+                <div class="field-loading-indicator" id="accountLoading">Checking database...</div>
+                <div class="field-error-msg" id="accountError">Must be exactly 10 digits and unique.</div>
+              </div>
+              <div>
+                <label for="accountName">Account Name <span class="required-star">*</span></label>
+                <input type="text" id="accountName" name="account_name" required placeholder="e.g. John Doe">
+                <div class="field-error-msg">Please enter your account name.</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="bringingCount">How many people are you bringing? <span class="required-star">*</span></label>
+              <input type="number" id="bringingCount" name="bringing_count" min="5" value="5" required>
+              <div class="field-error-msg">Minimum of 5 people is required.</div>
+            </div>
+
+            <!-- Referrals names -->
+            <div class="referral-list">
+              <h4>Names of 5 Referrals You Are Bringing (PVC Holders) <span class="required-star">*</span></h4>
+              <div class="referral-input-wrapper">
+                <input type="text" class="referral-name" placeholder="Referral 1 Full Name" required>
+                <input type="text" class="referral-name" placeholder="Referral 2 Full Name" required>
+                <input type="text" class="referral-name" placeholder="Referral 3 Full Name" required>
+                <input type="text" class="referral-name" placeholder="Referral 4 Full Name" required>
+                <input type="text" class="referral-name" placeholder="Referral 5 Full Name" required>
+              </div>
+              <div class="field-error-msg" id="referralsError" style="margin-top:0.5rem;">All 5 referral names must be filled out.</div>
+            </div>
+
+            <div class="checkbox-group">
+              <input type="checkbox" id="confirmPvc" required>
+              <label for="confirmPvc">I confirm I have a valid Voter's Card (PVC) <span class="required-star">*</span></label>
+            </div>
+            
+            <div class="checkbox-group">
+              <input type="checkbox" id="agreeSupport" required>
+              <label for="agreeSupport">I agree to support Hon. Korite Michael Kalango in the 2027 election <span class="required-star">*</span></label>
+            </div>
+          </div>
+
+          <!-- Form Buttons Navigation -->
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" id="prevBtn" style="visibility: hidden;">Back</button>
+            <button type="button" class="btn btn-primary" id="nextBtn">Next</button>
+          </div>
+        </form>
+
+        <!-- Success Notification Panel -->
+        <div class="form-alert-success" id="successPanel" style="display: none;">
+          <h3>Registration Successful!</h3>
+          <div class="member-id-badge" id="memberIdBadge">KMK-W-00000</div>
+          <p id="successMessage"></p>
+          <a href="register.html" class="btn btn-gold">Back to Portal</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <h3>Hon. Korite Michael Kalango Campaign Office</h3>
+      <p>Empowering the grassroots in Nembe Constituency II.</p>
+      <div class="footer-credit">
+        &copy; 2026 Hon. Korite Michael Kalango 2027 Campaign. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Frontend Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('wardForm');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const successPanel = document.getElementById('successPanel');
+      const formAlertError = document.getElementById('formAlertError');
+      const progressLine = document.getElementById('progressLine');
+      const progressLabel = document.getElementById('progressLabel');
+
+      const pvcInput = document.getElementById('pvcNumber');
+      const pvcLoading = document.getElementById('pvcLoading');
+      const pvcError = document.getElementById('pvcError');
+
+      const accountInput = document.getElementById('accountNumber');
+      const accountLoading = document.getElementById('accountLoading');
+      const accountError = document.getElementById('accountError');
+
+      let currentStep = 1;
+      const totalSteps = 3;
+      let pvcValid = false;
+      let accountValid = false;
+
+      const stepTitles = {
+        1: "Step 1: Personal Profile",
+        2: "Step 2: Grassroots Alignment",
+        3: "Step 3: Banking & Referrals"
+      };
+
+      // Handle Step navigation UI updates
+      function updateStepUI() {
+        // Toggle visibility of steps
+        document.querySelectorAll('.form-step').forEach((step, idx) => {
+          step.classList.toggle('active', idx + 1 === currentStep);
+        });
+
+        // Toggle active states on step indicator nodes
+        document.querySelectorAll('.step-node').forEach((node, idx) => {
+          const stepNum = idx + 1;
+          node.classList.toggle('active', stepNum === currentStep);
+          node.classList.toggle('completed', stepNum < currentStep);
+        });
+
+        // Progress bar percentage
+        const progressPct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressLine.style.width = `${progressPct}%`;
+        progressLabel.innerText = stepTitles[currentStep];
+
+        // Back button visibility
+        prevBtn.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+
+        // Next / Submit label
+        nextBtn.innerText = currentStep === totalSteps ? 'Submit Registration' : 'Next';
+      }
+
+      // Check fields validation for current step
+      function validateStep(step) {
+        const stepContainer = document.getElementById(`step-${step}`);
+        const inputs = stepContainer.querySelectorAll('input[required], select[required]');
+        let stepIsValid = true;
+
+        inputs.forEach(input => {
+          let fieldIsValid = true;
+
+          if (input.type === 'checkbox') {
+            fieldIsValid = input.checked;
+          } else if (input.tagName === 'SELECT') {
+            fieldIsValid = input.value !== "";
+          } else if (input.id === 'phoneNumber') {
+            // Nigerian phone format validation
+            const phonePattern = /^(?:\+234|0)[789]\d{9}$/;
+            fieldIsValid = phonePattern.test(input.value.replace(/\s+/g, ''));
+          } else if (input.id === 'accountNumber') {
+            // 10 digits validation
+            fieldIsValid = /^\d{10}$/.test(input.value.replace(/\s+/g, ''));
+          } else if (input.id === 'bringingCount') {
+            fieldIsValid = parseInt(input.value) >= 5;
+          } else {
+            fieldIsValid = input.value.trim() !== "";
+          }
+
+          input.classList.toggle('invalid', !fieldIsValid);
+          input.classList.toggle('valid', fieldIsValid);
+
+          // Find sibling error message
+          const errorMsg = input.parentElement.querySelector('.field-error-msg');
+          if (errorMsg) {
+            errorMsg.style.display = fieldIsValid ? 'none' : 'block';
+          }
+
+          if (!fieldIsValid) stepIsValid = false;
+        });
+
+        // Specific validation for step 3 referral names
+        if (step === 3) {
+          const referralInputs = stepContainer.querySelectorAll('.referral-name');
+          let referralsFilled = true;
+          referralInputs.forEach(ref => {
+            const isFilled = ref.value.trim() !== "";
+            ref.classList.toggle('invalid', !isFilled);
+            if (!isFilled) referralsFilled = false;
+          });
+
+          const refError = document.getElementById('referralsError');
+          refError.style.display = referralsFilled ? 'none' : 'block';
+
+          if (!referralsFilled) stepIsValid = false;
+
+          // Check if unique fields checked out
+          if (!pvcValid || !accountValid) {
+            if (!pvcValid) {
+              pvcInput.classList.add('invalid');
+              pvcError.style.display = 'block';
+            }
+            if (!accountValid) {
+              accountInput.classList.add('invalid');
+              accountError.style.display = 'block';
+            }
+            stepIsValid = false;
+          }
+        }
+
+        return stepIsValid;
+      }
+
+      // Blur check on PVC
+      pvcInput.addEventListener('blur', async () => {
+        const pvc = pvcInput.value.trim();
+        if (!pvc) {
+          pvcValid = false;
+          pvcInput.classList.add('invalid');
+          pvcError.innerText = "Voter's Card Number (PVC) is required.";
+          pvcError.style.display = 'block';
+          return;
+        }
+
+        pvcLoading.style.display = 'block';
+        pvcError.style.display = 'none';
+
+        try {
+          const res = await fetch(`/api/check-duplicate?pvc=${encodeURIComponent(pvc)}`);
+          const data = await res.json();
+          pvcLoading.style.display = 'none';
+
+          if (data.exists) {
+            pvcValid = false;
+            pvcInput.classList.remove('valid');
+            pvcInput.classList.add('invalid');
+            pvcError.innerText = "This Voter's Card Number has already been used to register. If you believe this is an error, please contact the campaign office.";
+            pvcError.style.display = 'block';
+          } else {
+            pvcValid = true;
+            pvcInput.classList.remove('invalid');
+            pvcInput.classList.add('valid');
+          }
+        } catch (err) {
+          console.error(err);
+          pvcLoading.style.display = 'none';
+        }
+      });
+
+      // Blur check on Account Number
+      accountInput.addEventListener('blur', async () => {
+        const accNum = accountInput.value.trim().replace(/\s+/g, '');
+        if (!accNum || accNum.length !== 10 || isNaN(accNum)) {
+          accountValid = false;
+          accountInput.classList.add('invalid');
+          accountError.innerText = "Bank account number must be exactly 10 digits.";
+          accountError.style.display = 'block';
+          return;
+        }
+
+        accountLoading.style.display = 'block';
+        accountError.style.display = 'none';
+
+        try {
+          const res = await fetch(`/api/check-duplicate?account_number=${encodeURIComponent(accNum)}`);
+          const data = await res.json();
+          accountLoading.style.display = 'none';
+
+          if (data.exists) {
+            accountValid = false;
+            accountInput.classList.remove('valid');
+            accountInput.classList.add('invalid');
+            accountError.innerText = "This bank account number has already been registered. Each account number can only be used once. Please contact the campaign office if you need assistance.";
+            accountError.style.display = 'block';
+          } else {
+            accountValid = true;
+            accountInput.classList.remove('invalid');
+            accountInput.classList.add('valid');
+          }
+        } catch (err) {
+          console.error(err);
+          accountLoading.style.display = 'none';
+        }
+      });
+
+      // Button Event Listeners
+      nextBtn.addEventListener('click', async () => {
+        if (!validateStep(currentStep)) {
+          formAlertError.innerText = "Please fill in all required fields correctly before moving forward.";
+          formAlertError.style.display = 'block';
+          window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+          return;
+        }
+
+        formAlertError.style.display = 'none';
+
+        if (currentStep < totalSteps) {
+          currentStep++;
+          updateStepUI();
+          window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+        } else {
+          // Final Submit
+          submitRegistration();
+        }
+      });
+
+      prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+          currentStep--;
+          updateStepUI();
+          formAlertError.style.display = 'none';
+          window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+        }
+      });
+
+      // Handle Final Submit
+      async function submitRegistration() {
+        nextBtn.classList.add('btn-disabled');
+        nextBtn.disabled = true;
+        nextBtn.innerText = "Submitting...";
+
+        // Extract referral names
+        const refElements = document.querySelectorAll('.referral-name');
+        const referral_names = Array.from(refElements).map(el => el.value.trim());
+
+        // Build request body
+        const formData = new FormData(form);
+        const requestBody = {
+          referral_names
+        };
+        formData.forEach((value, key) => {
+          requestBody[key] = value;
+        });
+
+        try {
+          const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            form.style.display = 'none';
+            document.querySelector('.progress-container').style.display = 'none';
+            successPanel.style.display = 'block';
+            document.getElementById('memberIdBadge').innerText = result.member_id;
+            document.getElementById('successMessage').innerText = result.message;
+            window.scrollTo({ top: successPanel.offsetTop - 100, behavior: 'smooth' });
+          } else {
+            // Show error message
+            formAlertError.innerText = result.error || "An error occurred during submission.";
+            formAlertError.style.display = 'block';
+            nextBtn.classList.remove('btn-disabled');
+            nextBtn.disabled = false;
+            nextBtn.innerText = "Submit Registration";
+            window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+          }
+        } catch (error) {
+          console.error('Error submitting form:', error);
+          formAlertError.innerText = "A network error occurred. Please check your internet connection and try again.";
+          formAlertError.style.display = 'block';
+          nextBtn.classList.remove('btn-disabled');
+          nextBtn.disabled = false;
+          nextBtn.innerText = "Submit Registration";
+          window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — Hon. Kalango Campaign</title>
+  <link rel="stylesheet" href="register-style.css">
+  <style>
+    /* Admin specific inline overrides */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .sidebar {
+      background-color: var(--primary-green);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      color: var(--text-light);
+      height: fit-content;
+      border: 1px solid var(--primary-gold);
+    }
+    .sidebar-menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .sidebar-menu li {
+      padding: 0.8rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    .sidebar-menu li:hover, .sidebar-menu li.active {
+      background-color: var(--primary-gold);
+      color: var(--primary-green-dark);
+    }
+    .dashboard-panel {
+      display: none;
+    }
+    .dashboard-panel.active {
+      display: block;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    .export-btns {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .export-btn {
+      background-color: var(--primary-gold);
+      color: var(--primary-green-dark);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid var(--primary-gold);
+    }
+    .export-btn:hover {
+      background-color: var(--primary-gold-light);
+    }
+    /* Modal styles for viewing details */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background-color: var(--bg-white);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      border: 2px solid var(--primary-gold);
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--primary-green);
+    }
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .details-item h5 {
+      color: var(--text-gray);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+    .details-item p {
+      font-weight: 600;
+      color: var(--primary-green);
+    }
+    @media (max-width: 992px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="register-body-wrap">
+  <!-- Navigation Header -->
+  <header>
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-text">
+          <h1>Hon. Korite Michael Kalango</h1>
+          <p>Campaign Control Center</p>
+        </div>
+      </div>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html">Main Website</a></li>
+          <li><a href="register.html">Registration Portal</a></li>
+          <li><button class="btn btn-outline" id="logoutBtn" style="display: none; color: var(--text-light); border-color: var(--text-light); padding: 0.4rem 1rem;">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- LOGIN SCREEN -->
+    <div class="admin-login-container" id="loginScreen">
+      <h2>Campaign Login</h2>
+      <p>Enter the administrator password to access registration records</p>
+      
+      <div class="form-alert form-alert-error" id="loginError"></div>
+
+      <div class="form-group" style="text-align: left;">
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter Campaign Password">
+      </div>
+      <button class="btn btn-primary" id="loginBtn" style="width: 100%;">Access Database</button>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div class="admin-dashboard-container" id="dashboardScreen">
+      
+      <!-- Stats Aggregates -->
+      <div class="dashboard-stats-grid">
+        <div class="stat-card">
+          <h4>Total Registrations</h4>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-card">
+          <h4>Ward Members</h4>
+          <div class="stat-value" id="statWard">0</div>
+        </div>
+        <div class="stat-card">
+          <h4>Kalango Boys</h4>
+          <div class="stat-value" id="statBoys">0</div>
+        </div>
+        <div class="stat-card">
+          <h4>Kalango Ladies</h4>
+          <div class="stat-value" id="statLadies">0</div>
+        </div>
+      </div>
+
+      <!-- Main Columns -->
+      <div class="dashboard-grid">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+          <h3 style="color: var(--primary-gold); font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">Controls</h3>
+          <ul class="sidebar-menu">
+            <li class="active" data-panel="panel-directory">Members Directory</li>
+            <li data-panel="panel-duplicates">Flagged Duplicates</li>
+            <li data-panel="panel-referrals">Referral Chains</li>
+          </ul>
+        </div>
+
+        <!-- Dashboard Content Panels -->
+        <div class="dashboard-content">
+          
+          <!-- PANEL 1: Directory -->
+          <div class="dashboard-panel active" id="panel-directory">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+              <h2 style="font-size: 1.5rem;">Verified Registrations</h2>
+              <!-- Exports -->
+              <div class="export-btns" style="margin-bottom:0;">
+                <button class="export-btn" onclick="exportData('ward')">Export Ward Members (CSV)</button>
+                <button class="export-btn" onclick="exportData('boys')">Export Kalango Boys (CSV)</button>
+                <button class="export-btn" onclick="exportData('ladies')">Export Kalango Ladies (CSV)</button>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="dashboard-controls">
+              <div class="controls-row">
+                <div class="form-group">
+                  <label for="filterSearch">Search Query</label>
+                  <input type="text" id="filterSearch" placeholder="Search name, phone, member ID...">
+                </div>
+                <div class="form-group">
+                  <label for="filterWard">Filter Ward</label>
+                  <select id="filterWard">
+                    <option value="">All Wards</option>
+                    <option value="Ward 4 (Okpoama)">Ward 4 (Okpoama)</option>
+                    <option value="Ward 5 (Odioama)">Ward 5 (Odioama)</option>
+                    <option value="Ward 6 (Cape Formosa)">Ward 6 (Cape Formosa)</option>
+                    <option value="Ward 7 (Onyoma)">Ward 7 (Onyoma)</option>
+                    <option value="Ward 8 (Mini)">Ward 8 (Mini)</option>
+                    <option value="Ward 9 (Ikensi)">Ward 9 (Ikensi)</option>
+                    <option value="Ward 10 (Oluasiri)">Ward 10 (Oluasiri)</option>
+                    <option value="Ward 11 (Bassambiri I)">Ward 11 (Bassambiri I)</option>
+                    <option value="Ward 12 (Bassambiri II)">Ward 12 (Bassambiri II)</option>
+                    <option value="Ward 13 (Bassambiri III)">Ward 13 (Bassambiri III)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="filterType">Filter Group</label>
+                  <select id="filterType">
+                    <option value="">All Groups</option>
+                    <option value="ward">Ward Members</option>
+                    <option value="boys">Kalango Boys</option>
+                    <option value="ladies">Kalango Ladies</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="filterVerified">Status</label>
+                  <select id="filterVerified">
+                    <option value="">All statuses</option>
+                    <option value="true">Verified Only</option>
+                    <option value="false">Pending Verification</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+              <table id="membersTable">
+                <thead>
+                  <tr>
+                    <th>Member ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Ward</th>
+                    <th>Group / Gender</th>
+                    <th>Verification</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="membersTableBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PANEL 2: Flagged Duplicates -->
+          <div class="dashboard-panel" id="panel-duplicates">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Flagged Duplicate Submission Attempts</h2>
+            <p style="color: var(--text-gray); margin-bottom: 1.5rem;">Audit log of submission attempts blocked due to PVC number or Bank Account number reuse rules.</p>
+            
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Attempt Name</th>
+                    <th>Phone</th>
+                    <th>Masked PVC</th>
+                    <th>Masked Account</th>
+                    <th>Flag Reason</th>
+                    <th>IP Address</th>
+                  </tr>
+                </thead>
+                <tbody id="duplicatesTableBody">
+                  <!-- JS populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PANEL 3: Referral network -->
+          <div class="dashboard-panel" id="panel-referrals">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Referral Network (5x5 Grassroots Chains)</h2>
+            <p style="color: var(--text-gray); margin-bottom: 1.5rem;">Track who referred who across the Nembe Constituency II territory.</p>
+            
+            <div class="referral-network-view" id="referralsView">
+              <!-- JS populated tree -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Member Details Modal -->
+  <div class="modal" id="detailsModal">
+    <div class="modal-content">
+      <span class="modal-close" id="modalClose">&times;</span>
+      <h3 style="font-family: 'Cinzel', serif; border-bottom: 2px solid var(--primary-gold); padding-bottom: 0.5rem;" id="modalMemberId">Member details</h3>
+      
+      <div class="details-grid" id="modalDetailsContainer">
+        <!-- JS Populated details -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <p>Hon. Korite Michael Kalango Campaign Database Center.</p>
+      <div class="footer-credit">
+        &copy; 2026 Admin Panel. Unauthorized access prohibited.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Admin Controls Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginScreen = document.getElementById('loginScreen');
+      const dashboardScreen = document.getElementById('dashboardScreen');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const adminPassword = document.getElementById('adminPassword');
+      const loginError = document.getElementById('loginError');
+
+      // Check Auth Status on Load
+      checkAuthentication();
+
+      async function checkAuthentication() {
+        try {
+          const res = await fetch('/api/admin/check-auth');
+          const data = await res.json();
+          if (data.authenticated) {
+            showDashboard();
+          } else {
+            showLogin();
+          }
+        } catch (err) {
+          console.error(err);
+          showLogin();
+        }
+      }
+
+      function showLogin() {
+        loginScreen.style.display = 'block';
+        dashboardScreen.style.display = 'none';
+        logoutBtn.style.display = 'none';
+      }
+
+      function showDashboard() {
+        loginScreen.style.display = 'none';
+        dashboardScreen.style.display = 'block';
+        logoutBtn.style.display = 'inline-block';
+        // Load initial data
+        loadStats();
+        loadMembers();
+        loadDuplicates();
+        loadReferrals();
+      }
+
+      // Login trigger
+      loginBtn.addEventListener('click', async () => {
+        const password = adminPassword.value;
+        if (!password) {
+          loginError.innerText = 'Password cannot be empty.';
+          loginError.style.display = 'block';
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+          });
+          const result = await res.json();
+
+          if (res.ok) {
+            loginError.style.display = 'none';
+            adminPassword.value = '';
+            showDashboard();
+          } else {
+            loginError.innerText = result.error || 'Login failed.';
+            loginError.style.display = 'block';
+          }
+        } catch (err) {
+          console.error(err);
+          loginError.innerText = 'Network error occurred.';
+          loginError.style.display = 'block';
+        }
+      });
+
+      // Press Enter to Login
+      adminPassword.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') loginBtn.click();
+      });
+
+      // Logout trigger
+      logoutBtn.addEventListener('click', async () => {
+        await fetch('/api/admin/logout', { method: 'POST' });
+        showLogin();
+      });
+
+      // Sidebar Tab Switching
+      document.querySelectorAll('.sidebar-menu li').forEach(item => {
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+          document.querySelectorAll('.dashboard-panel').forEach(panel => panel.classList.remove('active'));
+          
+          item.classList.add('active');
+          const panelId = item.getAttribute('data-panel');
+          document.getElementById(panelId).classList.add('active');
+        });
+      });
+
+      // MEMBERS DIRECTORY FILTER LOGIC
+      const filterSearch = document.getElementById('filterSearch');
+      const filterWard = document.getElementById('filterWard');
+      const filterType = document.getElementById('filterType');
+      const filterVerified = document.getElementById('filterVerified');
+
+      [filterSearch, filterWard, filterType, filterVerified].forEach(el => {
+        el.addEventListener('input', () => {
+          loadMembers();
+        });
+      });
+
+      // Global datasets stored locally for modal viewing
+      let membersData = [];
+
+      // API: Load Stats
+      async function loadStats() {
+        try {
+          const res = await fetch('/api/admin/stats');
+          if (res.ok) {
+            const stats = await res.json();
+            document.getElementById('statTotal').innerText = stats.total_members;
+            document.getElementById('statWard').innerText = stats.ward_members;
+            document.getElementById('statBoys').innerText = stats.boys;
+            document.getElementById('statLadies').innerText = stats.ladies;
+          }
+        } catch (err) {
+          console.error('Error loading stats:', err);
+        }
+      }
+
+      // API: Load Members Directory
+      async function loadMembers() {
+        const queryParams = new URLSearchParams({
+          search: filterSearch.value,
+          ward: filterWard.value,
+          form_type: filterType.value,
+          verified: filterVerified.value
+        });
+
+        try {
+          const res = await fetch(`/api/admin/registrations?${queryParams.toString()}`);
+          if (res.ok) {
+            membersData = await res.json();
+            renderMembersTable(membersData);
+          }
+        } catch (err) {
+          console.error('Error loading members:', err);
+        }
+      }
+
+      function renderMembersTable(data) {
+        const body = document.getElementById('membersTableBody');
+        body.innerHTML = '';
+
+        if (data.length === 0) {
+          body.innerHTML = '<tr><td colspan="7" style="text-align:center;">No matching registrations found.</td></tr>';
+          return;
+        }
+
+        data.forEach(member => {
+          let groupText = '';
+          if (member.form_type === 'ward') {
+            groupText = 'Ward Member';
+          } else {
+            groupText = member.gender === 'Male' ? 'Kalango Boys' : 'Kalango Ladies';
+          }
+
+          const verifiedBadge = member.is_verified 
+            ? '<span class="status-badge verified">Verified</span>' 
+            : '<span class="status-badge pending">Pending</span>';
+
+          const toggleAction = member.is_verified ? 'Unverify' : 'Verify';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-family: 'Cinzel', serif; font-weight:700;">${member.member_id}</td>
+            <td><strong>${escapeHTML(member.full_name)}</strong></td>
+            <td>${escapeHTML(member.phone_number)}</td>
+            <td>${escapeHTML(member.ward)}</td>
+            <td>${groupText}</td>
+            <td>${verifiedBadge}</td>
+            <td>
+              <div style="display:flex; gap: 8px;">
+                <button class="verify-toggle-btn" onclick="toggleVerification('${member.id}', ${member.is_verified ? 0 : 1})">${toggleAction}</button>
+                <button class="verify-toggle-btn" style="border-color:var(--primary-gold); color:var(--primary-gold-dark);" onclick="showDetails('${member.id}')">Details</button>
+              </div>
+            </td>
+          `;
+          body.appendChild(tr);
+        });
+      }
+
+      // API: Verify toggle
+      window.toggleVerification = async function(id, verifyStatus) {
+        try {
+          const res = await fetch('/api/admin/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, is_verified: verifyStatus })
+          });
+          if (res.ok) {
+            loadMembers();
+            loadStats();
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      // Details Modal Controls
+      const detailsModal = document.getElementById('detailsModal');
+      const modalClose = document.getElementById('modalClose');
+      modalClose.addEventListener('click', () => {
+        detailsModal.classList.remove('active');
+      });
+
+      window.showDetails = function(id) {
+        const member = membersData.find(m => m.id === id);
+        if (!member) return;
+
+        document.getElementById('modalMemberId').innerText = `Member Profile: ${member.member_id}`;
+        
+        let typeStr = member.form_type === 'ward' ? 'Ward Member' : (member.gender === 'Male' ? 'Kalango Boys' : 'Kalango Ladies');
+        
+        // Define fields to output based on category
+        let detailsHTML = `
+          <div class="details-item"><h5>Full Name</h5><p>${escapeHTML(member.full_name)}</p></div>
+          <div class="details-item"><h5>Phone Number</h5><p>${escapeHTML(member.phone_number)}</p></div>
+          <div class="details-item"><h5>Email Address</h5><p>${escapeHTML(member.email || 'N/A')}</p></div>
+          <div class="details-item"><h5>Gender</h5><p>${escapeHTML(member.gender)}</p></div>
+          <div class="details-item"><h5>Date of Birth</h5><p>${escapeHTML(member.dob)}</p></div>
+          <div class="details-item"><h5>Ward</h5><p>${escapeHTML(member.ward)}</p></div>
+          <div class="details-item"><h5>Community / Village</h5><p>${escapeHTML(member.community)}</p></div>
+          <div class="details-item"><h5>Registration Group</h5><p>${typeStr}</p></div>
+          <div class="details-item"><h5>Voter's Card (PVC)</h5><p>${escapeHTML(member.pvc_masked)}</p></div>
+          <div class="details-item"><h5>Bank Details</h5><p>${escapeHTML(member.bank_name)} - ${escapeHTML(member.account_num_masked)} (${escapeHTML(member.account_name)})</p></div>
+        `;
+
+        if (member.form_type === 'ward') {
+          detailsHTML += `
+            <div class="details-item"><h5>Polling Unit</h5><p>${escapeHTML(member.polling_unit || 'N/A')}</p></div>
+            <div class="details-item"><h5>Bringing Network Count</h5><p>${member.bringing_count} people</p></div>
+            <div class="details-item"><h5>Referrer</h5><p>${escapeHTML(member.referrer_name)} (${escapeHTML(member.referrer_phone || 'No Phone')})</p></div>
+          `;
+        } else {
+          detailsHTML += `
+            <div class="details-item"><h5>Employment Status</h5><p>${escapeHTML(member.employment_status || 'N/A')}</p></div>
+            <div class="details-item"><h5>Current Occupation</h5><p>${escapeHTML(member.occupation || 'N/A')}</p></div>
+            <div class="details-item"><h5>Educational Level</h5><p>${escapeHTML(member.education_level || 'N/A')}</p></div>
+            <div class="details-item"><h5>Skill Interest</h5><p>${escapeHTML(member.skill_interest || 'N/A')}</p></div>
+            <div class="details-item"><h5>Referred By</h5><p>${escapeHTML(member.referrer_name || 'N/A')}</p></div>
+          `;
+        }
+
+        // Add 5 referral names
+        const refs = member.referral_names || [];
+        detailsHTML += `
+          <div class="details-item" style="grid-column: span 2; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+            <h5>5 Referrals Brought In:</h5>
+            <ol style="margin-left: 20px; font-weight: 600; color: var(--primary-green);">
+              ${refs.map(r => `<li>${escapeHTML(r)}</li>`).join('')}
+            </ol>
+          </div>
+          <div class="details-item"><h5>IP Address</h5><p>${member.ip_address}</p></div>
+          <div class="details-item"><h5>Date Registered</h5><p>${new Date(member.timestamp).toLocaleString()}</p></div>
+        `;
+
+        document.getElementById('modalDetailsContainer').innerHTML = detailsHTML;
+        detailsModal.classList.add('active');
+      };
+
+      // API: Load Flagged Duplicates Log
+      async function loadDuplicates() {
+        try {
+          const res = await fetch('/api/admin/duplicates');
+          if (res.ok) {
+            const data = await res.json();
+            renderDuplicatesTable(data);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function renderDuplicatesTable(data) {
+        const body = document.getElementById('duplicatesTableBody');
+        body.innerHTML = '';
+
+        if (data.length === 0) {
+          body.innerHTML = '<tr><td colspan="7" style="text-align:center;">No duplicate attempts logged.</td></tr>';
+          return;
+        }
+
+        data.forEach(log => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${new Date(log.timestamp).toLocaleString()}</td>
+            <td><strong>${escapeHTML(log.full_name)}</strong></td>
+            <td>${escapeHTML(log.phone_number)}</td>
+            <td><code>${escapeHTML(log.pvc_masked || 'N/A')}</code></td>
+            <td><code>${escapeHTML(log.account_num_masked || 'N/A')}</code></td>
+            <td><strong style="color:var(--error-color);">${escapeHTML(log.attempt_reason)}</strong></td>
+            <td>${log.ip_address}</td>
+          `;
+          body.appendChild(tr);
+        });
+      }
+
+      // API: Load Referral network
+      async function loadReferrals() {
+        try {
+          const res = await fetch('/api/admin/referrals');
+          if (res.ok) {
+            const data = await res.json();
+            buildReferralsTree(data);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function buildReferralsTree(data) {
+        const view = document.getElementById('referralsView');
+        view.innerHTML = '';
+
+        if (data.length === 0) {
+          view.innerHTML = '<p style="text-align:center; color:var(--text-gray);">No members in system. Referral chains will show when members register.</p>';
+          return;
+        }
+
+        const referrers = {};
+        
+        data.forEach(member => {
+          const refKey = (member.referrer_name || 'Direct / None').trim();
+          if (!referrers[refKey]) {
+            referrers[refKey] = [];
+          }
+          referrers[refKey].push(member);
+        });
+
+        for (const [referrer, members] of Object.entries(referrers)) {
+          const block = document.createElement('div');
+          block.style.marginBottom = '1.5rem';
+
+          let referrerHeader = `<div class="referral-node-header">👤 <strong>Referrer: ${escapeHTML(referrer)}</strong> (${members.length} referred)</div>`;
+          block.innerHTML = referrerHeader;
+
+          const treeContainer = document.createElement('div');
+          treeContainer.className = 'referral-tree-node';
+
+          members.forEach(m => {
+            const mBadge = m.form_type === 'ward' ? 'Ward' : (m.gender === 'Male' ? 'Boys' : 'Ladies');
+            const item = document.createElement('div');
+            item.style.margin = '8px 0';
+            item.innerHTML = `
+              <span>📜 <span class="referral-node-id">${m.member_id}</span> - <strong>${escapeHTML(m.full_name)}</strong> (${escapeHTML(m.phone_number)}) - <em>${escapeHTML(m.ward)}</em> [${mBadge}]</span>
+            `;
+            treeContainer.appendChild(item);
+          });
+
+          block.appendChild(treeContainer);
+          view.appendChild(block);
+        }
+      }
+
+      // Export helper function
+      window.exportData = function(formType) {
+        window.location.href = `/api/admin/export?form_type=${formType}`;
+      };
+
+      // HTML Escaper helper
+      function escapeHTML(str) {
+        if (!str) return '';
+        return str.toString()
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+    });
+  </script>
+</body>
+</html>
