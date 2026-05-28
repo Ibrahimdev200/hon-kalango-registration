@@ -28,25 +28,38 @@ async function initializeDB() {
   console.log('[Firebase] Initializing database connection...');
 
   const keyPath = path.resolve(__dirname, '../firebase-key.json');
+  let serviceAccount = null;
+  let keySource = '';
+
+  if (fs.existsSync(keyPath)) {
+    serviceAccount = require(keyPath);
+    keySource = 'firebase-key.json file';
+  } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      keySource = 'FIREBASE_SERVICE_ACCOUNT env variable';
+    } catch (e) {
+      console.warn('[Firebase Warning] Failed to parse FIREBASE_SERVICE_ACCOUNT env variable:', e.message);
+    }
+  }
 
   // Case A: Initialize using Firebase Admin SDK (Recommended)
-  if (fs.existsSync(keyPath)) {
+  if (serviceAccount) {
     try {
       const admin = require('firebase-admin');
-      const serviceAccount = require(keyPath);
       adminInstance = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
       db = admin.firestore();
       usingAdminSDK = true;
-      console.log('[Firebase] Admin SDK initialized successfully with firebase-key.json.');
+      console.log(`[Firebase] Admin SDK initialized successfully with ${keySource}.`);
       
       // Test the connection
       await db.collection('registrations').limit(1).get();
       console.log('[Firebase] Cloud Firestore connection validated.');
       return;
     } catch (err) {
-      console.warn('[Firebase Warning] Failed to initialize Admin SDK with key file:', err.message);
+      console.warn(`[Firebase Warning] Failed to initialize Admin SDK with credentials from ${keySource}:`, err.message);
     }
   }
 
