@@ -200,12 +200,18 @@ header.scrolled .nav-container {
 }
 
 .party-logo {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     object-fit: cover;
     border-radius: 50%;
-    border: 2px solid var(--secondary-color);
-    box-shadow: 0 0 15px rgba(255, 184, 0, 0.3);
+    border: 3px solid var(--secondary-color);
+    box-shadow: 0 0 20px rgba(255, 184, 0, 0.45);
+    transition: all 0.3s ease;
+}
+
+.party-logo:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 30px rgba(255, 184, 0, 0.75);
 }
 
 .logo-text-wrapper {
@@ -215,16 +221,21 @@ header.scrolled .nav-container {
 
 .logo-text {
     font-family: var(--font-heading);
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 800;
     color: var(--white);
     letter-spacing: 2px;
     line-height: 1;
+    transition: color 0.3s ease;
+}
+
+.logo:hover .logo-text {
+    color: var(--secondary-color);
 }
 
 .logo-sub {
     font-family: var(--font-heading);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--secondary-color);
     letter-spacing: 4px;
