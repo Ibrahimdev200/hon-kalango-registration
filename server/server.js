@@ -136,8 +136,8 @@ app.post('/api/register', async (req, res) => {
     if (!data.polling_unit) {
       return res.status(400).json({ error: "Polling Unit is required for Ward Member registration." });
     }
-    if (!data.bringing_count || parseInt(data.bringing_count) < 5) {
-      return res.status(400).json({ error: "You must bring at least 5 people to register." });
+    if (!data.bringing_count || parseInt(data.bringing_count) < 1) {
+      return res.status(400).json({ error: "Please enter a valid household member count." });
     }
   }
 
@@ -148,9 +148,9 @@ app.post('/api/register', async (req, res) => {
     }
   }
 
-  // Validate Referrals list
-  if (!data.referral_names || !Array.isArray(data.referral_names) || data.referral_names.filter(n => n && n.trim()).length < 5) {
-    return res.status(400).json({ error: "At least 5 names of referrals you are bringing are required." });
+  // Ensure referral_names is an array (making it optional)
+  if (!data.referral_names || !Array.isArray(data.referral_names)) {
+    data.referral_names = [];
   }
 
   // Phone number format validation (basic check)

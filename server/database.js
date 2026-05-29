@@ -47,9 +47,13 @@ async function initializeDB() {
   if (serviceAccount) {
     try {
       const admin = require('firebase-admin');
-      adminInstance = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-      });
+      if (admin.apps.length === 0) {
+        adminInstance = admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount)
+        });
+      } else {
+        adminInstance = admin.app();
+      }
       db = admin.firestore();
       usingAdminSDK = true;
       console.log(`[Firebase] Admin SDK initialized successfully with ${keySource}.`);

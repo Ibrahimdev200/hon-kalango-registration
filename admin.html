@@ -219,16 +219,16 @@
                   <label for="filterWard">Filter Ward</label>
                   <select id="filterWard">
                     <option value="">All Wards</option>
-                    <option value="Ward 4 (Okpoama)">Ward 4 (Okpoama)</option>
-                    <option value="Ward 5 (Odioama)">Ward 5 (Odioama)</option>
-                    <option value="Ward 6 (Cape Formosa)">Ward 6 (Cape Formosa)</option>
-                    <option value="Ward 7 (Onyoma)">Ward 7 (Onyoma)</option>
-                    <option value="Ward 8 (Mini)">Ward 8 (Mini)</option>
-                    <option value="Ward 9 (Ikensi)">Ward 9 (Ikensi)</option>
-                    <option value="Ward 10 (Oluasiri)">Ward 10 (Oluasiri)</option>
-                    <option value="Ward 11 (Bassambiri I)">Ward 11 (Bassambiri I)</option>
-                    <option value="Ward 12 (Bassambiri II)">Ward 12 (Bassambiri II)</option>
-                    <option value="Ward 13 (Bassambiri III)">Ward 13 (Bassambiri III)</option>
+                    <option value="Ward 1">Ward 1</option>
+                    <option value="Ward 2">Ward 2</option>
+                    <option value="Ward 3">Ward 3</option>
+                    <option value="Ward 4">Ward 4</option>
+                    <option value="Ward 5">Ward 5</option>
+                    <option value="Ward 6">Ward 6</option>
+                    <option value="Ward 7">Ward 7</option>
+                    <option value="Ward 8">Ward 8</option>
+                    <option value="Ward 9">Ward 9</option>
+                    <option value="Ward 10">Ward 10</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -567,7 +567,7 @@
           <div class="details-item"><h5>Gender</h5><p>${escapeHTML(member.gender)}</p></div>
           <div class="details-item"><h5>Date of Birth</h5><p>${escapeHTML(member.dob)}</p></div>
           <div class="details-item"><h5>Ward</h5><p>${escapeHTML(member.ward)}</p></div>
-          <div class="details-item"><h5>Community / Village</h5><p>${escapeHTML(member.community)}</p></div>
+          <div class="details-item"><h5>Compound Family Name</h5><p>${escapeHTML(member.community)}</p></div>
           <div class="details-item"><h5>Registration Group</h5><p>${typeStr}</p></div>
           <div class="details-item"><h5>Voter's Card (PVC)</h5><p>${escapeHTML(member.pvc_masked)}</p></div>
           <div class="details-item"><h5>Bank Details</h5><p>${escapeHTML(member.bank_name)} - ${escapeHTML(member.account_num_masked)} (${escapeHTML(member.account_name)})</p></div>
@@ -576,7 +576,7 @@
         if (member.form_type === 'ward') {
           detailsHTML += `
             <div class="details-item"><h5>Polling Unit</h5><p>${escapeHTML(member.polling_unit || 'N/A')}</p></div>
-            <div class="details-item"><h5>Bringing Network Count</h5><p>${member.bringing_count} people</p></div>
+            <div class="details-item"><h5>Household Size</h5><p>${member.bringing_count} people</p></div>
             <div class="details-item"><h5>Referrer</h5><p>${escapeHTML(member.referrer_name)} (${escapeHTML(member.referrer_phone || 'No Phone')})</p></div>
           `;
         } else {

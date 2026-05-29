@@ -99,25 +99,25 @@
               <label for="ward">Select Ward <span class="required-star">*</span></label>
               <select id="ward" name="ward" required>
                 <option value="" disabled selected>Choose ward in Nembe Constituency II</option>
-                <option value="Ward 4 (Okpoama)">Ward 4 (Okpoama)</option>
-                <option value="Ward 5 (Odioama)">Ward 5 (Odioama)</option>
-                <option value="Ward 6 (Cape Formosa)">Ward 6 (Cape Formosa)</option>
-                <option value="Ward 7 (Onyoma)">Ward 7 (Onyoma)</option>
-                <option value="Ward 8 (Mini)">Ward 8 (Mini)</option>
-                <option value="Ward 9 (Ikensi)">Ward 9 (Ikensi)</option>
-                <option value="Ward 10 (Oluasiri)">Ward 10 (Oluasiri)</option>
-                <option value="Ward 11 (Bassambiri I)">Ward 11 (Bassambiri I)</option>
-                <option value="Ward 12 (Bassambiri II)">Ward 12 (Bassambiri II)</option>
-                <option value="Ward 13 (Bassambiri III)">Ward 13 (Bassambiri III)</option>
+                <option value="Ward 1">Ward 1</option>
+                <option value="Ward 2">Ward 2</option>
+                <option value="Ward 3">Ward 3</option>
+                <option value="Ward 4">Ward 4</option>
+                <option value="Ward 5">Ward 5</option>
+                <option value="Ward 6">Ward 6</option>
+                <option value="Ward 7">Ward 7</option>
+                <option value="Ward 8">Ward 8</option>
+                <option value="Ward 9">Ward 9</option>
+                <option value="Ward 10">Ward 10</option>
               </select>
               <div class="field-error-msg">Please select your ward.</div>
             </div>
 
             <div class="form-group half-width">
               <div>
-                <label for="community">Community / Village <span class="required-star">*</span></label>
-                <input type="text" id="community" name="community" required placeholder="e.g. Okpoama Town">
-                <div class="field-error-msg">Please enter your community/village.</div>
+                <label for="community">Compound Family Name <span class="required-star">*</span></label>
+                <input type="text" id="community" name="community" required placeholder="e.g. Kalango Family Compound">
+                <div class="field-error-msg">Please enter your compound family name.</div>
               </div>
               <div>
                 <label for="pollingUnit">Polling Unit <span class="required-star">*</span></label>
@@ -128,9 +128,8 @@
 
             <div class="form-group half-width">
               <div>
-                <label for="referrerName">Referrer Name <span class="required-star">*</span></label>
-                <input type="text" id="referrerName" name="referrer_name" required placeholder="Name of Ward Leader / Referral">
-                <div class="field-error-msg">Please enter who referred you.</div>
+                <label for="referrerName">Referrer Name <span class="text-gray">(Optional)</span></label>
+                <input type="text" id="referrerName" name="referrer_name" placeholder="Name of Ward Leader / Referral">
               </div>
               <div>
                 <label for="referrerPhone">Referrer Phone <span class="text-gray">(Optional)</span></label>
@@ -188,22 +187,9 @@
             </div>
 
             <div class="form-group">
-              <label for="bringingCount">How many people are you bringing? <span class="required-star">*</span></label>
-              <input type="number" id="bringingCount" name="bringing_count" min="5" value="5" required>
-              <div class="field-error-msg">Minimum of 5 people is required.</div>
-            </div>
-
-            <!-- Referrals names -->
-            <div class="referral-list">
-              <h4>Names of 5 Referrals You Are Bringing (PVC Holders) <span class="required-star">*</span></h4>
-              <div class="referral-input-wrapper">
-                <input type="text" class="referral-name" placeholder="Referral 1 Full Name" required>
-                <input type="text" class="referral-name" placeholder="Referral 2 Full Name" required>
-                <input type="text" class="referral-name" placeholder="Referral 3 Full Name" required>
-                <input type="text" class="referral-name" placeholder="Referral 4 Full Name" required>
-                <input type="text" class="referral-name" placeholder="Referral 5 Full Name" required>
-              </div>
-              <div class="field-error-msg" id="referralsError" style="margin-top:0.5rem;">All 5 referral names must be filled out.</div>
+              <label for="bringingCount">How many people stays in your household? <span class="required-star">*</span></label>
+              <input type="number" id="bringingCount" name="bringing_count" min="1" value="1" required>
+              <div class="field-error-msg">Please enter a valid number (minimum 1).</div>
             </div>
 
             <div class="checkbox-group">
@@ -323,7 +309,7 @@
             // 10 digits validation
             fieldIsValid = /^\d{10}$/.test(input.value.replace(/\s+/g, ''));
           } else if (input.id === 'bringingCount') {
-            fieldIsValid = parseInt(input.value) >= 5;
+            fieldIsValid = parseInt(input.value) >= 1;
           } else {
             fieldIsValid = input.value.trim() !== "";
           }
@@ -340,21 +326,8 @@
           if (!fieldIsValid) stepIsValid = false;
         });
 
-        // Specific validation for step 3 referral names
+        // Specific validation for step 3 unique fields check
         if (step === 3) {
-          const referralInputs = stepContainer.querySelectorAll('.referral-name');
-          let referralsFilled = true;
-          referralInputs.forEach(ref => {
-            const isFilled = ref.value.trim() !== "";
-            ref.classList.toggle('invalid', !isFilled);
-            if (!isFilled) referralsFilled = false;
-          });
-
-          const refError = document.getElementById('referralsError');
-          refError.style.display = referralsFilled ? 'none' : 'block';
-
-          if (!referralsFilled) stepIsValid = false;
-
           // Check if unique fields checked out
           if (!pvcValid || !accountValid) {
             if (!pvcValid) {
@@ -480,9 +453,8 @@
         nextBtn.disabled = true;
         nextBtn.innerText = "Submitting...";
 
-        // Extract referral names
-        const refElements = document.querySelectorAll('.referral-name');
-        const referral_names = Array.from(refElements).map(el => el.value.trim());
+        // Extract referral names (removed from UI, sending empty array)
+        const referral_names = [];
 
         // Build request body
         const formData = new FormData(form);
