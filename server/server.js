@@ -323,7 +323,12 @@ app.get('/api/admin/export', authorizeAdmin, async (req, res) => {
     let filterType = form_type;
     
     // Convert to query filters
-    const records = await db.getRegistrations({ form_type: filterType });
+    const rawRecords = await db.getRegistrations({ form_type: filterType });
+    const records = rawRecords.map(r => ({
+      ...r,
+      pvc: r.pvc || r.pvc_masked || '',
+      account_number: r.account_number || r.account_num_masked || ''
+    }));
 
     let csvFields = [];
     let filename = '';
@@ -332,8 +337,8 @@ app.get('/api/admin/export', authorizeAdmin, async (req, res) => {
       filename = 'Ward_Member_Registrations.csv';
       csvFields = [
         'member_id', 'full_name', 'phone_number', 'email', 'gender', 'dob',
-        'ward', 'community', 'polling_unit', 'pvc_masked', 'bank_name',
-        'account_num_masked', 'account_name', 'referrer_name', 'referrer_phone',
+        'ward', 'community', 'polling_unit', 'pvc', 'bank_name',
+        'account_number', 'account_name', 'referrer_name', 'referrer_phone',
         'bringing_count', 'referral_names', 'is_verified', 'ip_address', 'timestamp'
       ];
     } else if (form_type === 'boys' || form_type === 'ladies') {
@@ -341,7 +346,7 @@ app.get('/api/admin/export', authorizeAdmin, async (req, res) => {
       csvFields = [
         'member_id', 'full_name', 'phone_number', 'email', 'gender', 'dob',
         'ward', 'community', 'employment_status', 'occupation', 'skill_interest',
-        'education_level', 'pvc_masked', 'bank_name', 'account_num_masked',
+        'education_level', 'pvc', 'bank_name', 'account_number',
         'account_name', 'referral_names', 'is_verified', 'ip_address', 'timestamp'
       ];
     } else {

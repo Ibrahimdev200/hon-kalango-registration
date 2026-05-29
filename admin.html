@@ -569,8 +569,8 @@
           <div class="details-item"><h5>Ward</h5><p>${escapeHTML(member.ward)}</p></div>
           <div class="details-item"><h5>Compound Family Name</h5><p>${escapeHTML(member.community)}</p></div>
           <div class="details-item"><h5>Registration Group</h5><p>${typeStr}</p></div>
-          <div class="details-item"><h5>Voter's Card (PVC)</h5><p>${escapeHTML(member.pvc_masked)}</p></div>
-          <div class="details-item"><h5>Bank Details</h5><p>${escapeHTML(member.bank_name)} - ${escapeHTML(member.account_num_masked)} (${escapeHTML(member.account_name)})</p></div>
+          <div class="details-item"><h5>Voter's Card (PVC)</h5><p>${escapeHTML(member.pvc || member.pvc_masked)}</p></div>
+          <div class="details-item"><h5>Bank Details</h5><p>${escapeHTML(member.bank_name)} - ${escapeHTML(member.account_number || member.account_num_masked)} (${escapeHTML(member.account_name)})</p></div>
         `;
 
         if (member.form_type === 'ward') {
