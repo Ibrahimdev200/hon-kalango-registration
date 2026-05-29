@@ -396,8 +396,10 @@ if (require.main === module) {
       });
     })
     .catch((err) => {
-      console.error('Database initialization failed:', err);
-      process.exit(1);
+      console.error('Database initialization failed at startup (running in offline/diagnostic mode):', err.message);
+      app.listen(PORT, () => {
+        console.log(`Server is running at http://localhost:${PORT} (Database Offline)`);
+      });
     });
 }
 
