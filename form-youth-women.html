@@ -75,7 +75,6 @@
         <!-- Multi-step Form -->
         <form id="youthWomenForm" novalidate>
           <input type="hidden" name="form_type" value="youth_women">
-          <input type="hidden" name="bringing_count" value="5">
 
           <!-- STEP 1: Personal & Empowerment profile details -->
           <div class="form-step active" id="step-1">
@@ -249,6 +248,12 @@
 
 
 
+            <div class="form-group">
+              <label for="bringingCount">How many people stays in your household? <span class="required-star">*</span></label>
+              <input type="number" id="bringingCount" name="bringing_count" min="1" value="1" required>
+              <div class="field-error-msg">Please enter a valid number (minimum 1).</div>
+            </div>
+
             <div class="checkbox-group">
               <input type="checkbox" id="agreeSupport" required>
               <label for="agreeSupport">I agree to support Hon. Korite Michael Kalango in the 2027 election <span class="required-star">*</span></label>
@@ -377,6 +382,8 @@
             fieldIsValid = phonePattern.test(input.value.replace(/\s+/g, ''));
           } else if (input.id === 'accountNumber') {
             fieldIsValid = /^\d{10}$/.test(input.value.replace(/\s+/g, ''));
+          } else if (input.id === 'bringingCount') {
+            fieldIsValid = parseInt(input.value) >= 1;
           } else {
             fieldIsValid = input.value.trim() !== "";
           }
