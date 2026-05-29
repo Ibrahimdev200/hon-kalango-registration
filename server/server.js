@@ -122,7 +122,7 @@ app.post('/api/register', async (req, res) => {
   // Validate required fields
   const requiredFields = [
     'form_type', 'full_name', 'phone_number', 'gender', 'dob',
-    'ward', 'community', 'pvc', 'bank_name', 'account_number', 'account_name'
+    'ward', 'pvc', 'bank_name', 'account_number', 'account_name'
   ];
 
   for (const field of requiredFields) {
@@ -133,9 +133,6 @@ app.post('/api/register', async (req, res) => {
 
   // Ward specific fields
   if (data.form_type === 'ward') {
-    if (!data.polling_unit) {
-      return res.status(400).json({ error: "Polling Unit is required for Ward Member registration." });
-    }
     if (!data.bringing_count || parseInt(data.bringing_count) < 1) {
       return res.status(400).json({ error: "Please enter a valid household member count." });
     }
