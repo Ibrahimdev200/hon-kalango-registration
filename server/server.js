@@ -9,8 +9,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Setup session constants
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || '@dherinosha2026';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '@korede2026';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'kmk1995';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'saapade@55';
 const SESSION_COOKIE = 'hon_kalango_session';
 const SESSION_USER_COOKIE = 'hon_kalango_user';
 const SESSION_SECRET = 'kalango_secret_session_key_2027';
