@@ -525,6 +525,23 @@ app.put('/api/admin/registrations/:id', authorizeAdmin, async (req, res) => {
   }
 });
 
+// 8b. Delete Registration
+app.delete('/api/admin/registrations/:id', authorizeAdmin, async (req, res) => {
+  if (!hasPermission(req, 'edit_users')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Missing id parameter' });
+    await db.deleteRegistration(id);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('Delete registration error:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // 9. Get Registrations (Filtered)
 app.get('/api/admin/registrations', authorizeAdmin, async (req, res) => {
   try {

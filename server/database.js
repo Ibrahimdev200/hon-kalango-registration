@@ -536,6 +536,20 @@ async function updateRegistration(id, updates) {
   return { id, ...sanitized };
 }
 
+// Delete a registration by document ID
+async function deleteRegistration(id) {
+  if (!id) throw new Error('Missing id');
+  if (usingAdminSDK) {
+    const docRef = db.collection('registrations').doc(id);
+    await docRef.delete();
+  } else {
+    const { doc, deleteDoc } = require('firebase/firestore');
+    const docRef = doc(db, 'registrations', id);
+    await deleteDoc(docRef);
+  }
+  return true;
+}
+
 module.exports = {
   initializeDB,
   checkPVCExists,
@@ -555,4 +569,6 @@ module.exports = {
   hashPassword,
   verifyPassword,
   updateRegistration
+  ,
+  deleteRegistration
 };
