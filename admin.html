@@ -6,6 +6,8 @@
   <title>Admin Dashboard — Hon. Kalango Campaign</title>
   <!-- Favicon -->
   <link rel="icon" type="image/jpeg" href="sdp-logo.jpeg">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="register-style.css">
   <style>
     /* Admin specific inline overrides */
@@ -159,9 +161,16 @@
       </div>
       <div class="form-group" style="text-align: left;">
         <label for="adminPassword">Password</label>
-        <input type="password" id="adminPassword" placeholder="Enter Campaign Password">
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="password" id="adminPassword" placeholder="Enter Campaign Password" style="flex: 1;">
+          <button type="button" id="togglePasswordBtn" style="background: var(--primary-gold); border: none; border-radius: 4px; padding: 0.5rem 0.75rem; cursor: pointer; font-weight: 600; color: var(--primary-green);" title="Toggle password visibility"><i class="fas fa-eye"></i></button>
+        </div>
       </div>
       <button class="btn btn-primary" id="loginBtn" style="width: 100%;">Access Database</button>
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap;">
+        <button type="button" id="forgotPasswordBtn" style="background: none; border: none; color: var(--secondary-color); cursor: pointer; text-decoration: underline; font-size: 0.9rem;">Forgot Password?</button>
+        <button type="button" id="resetUsernameBtn" style="background: none; border: none; color: var(--secondary-color); cursor: pointer; text-decoration: underline; font-size: 0.9rem;">Reset Username?</button>
+      </div>
     </div>
 
     <!-- MAIN DASHBOARD -->
@@ -357,6 +366,50 @@
     </div>
   </main>
 
+  <!-- Password Reset Modal -->
+  <div class="modal" id="resetPasswordModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <span class="modal-close" id="resetPasswordClose">&times;</span>
+      <h3 style="border-bottom: 2px solid var(--primary-gold); padding-bottom: 0.5rem; margin-bottom: 1rem;">Reset Admin Password</h3>
+      <div class="form-alert form-alert-error" id="resetPasswordError" style="display:none;"></div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="resetPasswordUsername">Username</label>
+        <input type="text" id="resetPasswordUsername" placeholder="Enter your username">
+      </div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="newPassword">New Password</label>
+        <input type="password" id="newPassword" placeholder="Enter new password">
+      </div>
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="confirmNewPassword">Confirm New Password</label>
+        <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+      </div>
+      <button class="btn btn-primary" id="submitResetPasswordBtn" style="width: 100%;">Reset Password</button>
+    </div>
+  </div>
+
+  <!-- Username Reset Modal -->
+  <div class="modal" id="resetUsernameModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <span class="modal-close" id="resetUsernameClose">&times;</span>
+      <h3 style="border-bottom: 2px solid var(--primary-gold); padding-bottom: 0.5rem; margin-bottom: 1rem;">Reset Admin Username</h3>
+      <div class="form-alert form-alert-error" id="resetUsernameError" style="display:none;"></div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="resetUsernamePassword">Current Password</label>
+        <input type="password" id="resetUsernamePassword" placeholder="Enter current password">
+      </div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="newUsername">New Username</label>
+        <input type="text" id="newUsername" placeholder="Enter new username">
+      </div>
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="confirmNewUsername">Confirm New Username</label>
+        <input type="text" id="confirmNewUsername" placeholder="Confirm new username">
+      </div>
+      <button class="btn btn-primary" id="submitResetUsernameBtn" style="width: 100%;">Reset Username</button>
+    </div>
+  </div>
+
   <!-- Member Details Modal -->
   <div class="modal" id="detailsModal">
     <div class="modal-content">
@@ -415,9 +468,146 @@
       const adminUsername = document.getElementById('adminUsername');
       const adminPassword = document.getElementById('adminPassword');
       const loginError = document.getElementById('loginError');
+      const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+      const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+      const resetUsernameBtn = document.getElementById('resetUsernameBtn');
+      const resetPasswordModal = document.getElementById('resetPasswordModal');
+      const resetUsernameModal = document.getElementById('resetUsernameModal');
+      const resetPasswordClose = document.getElementById('resetPasswordClose');
+      const resetUsernameClose = document.getElementById('resetUsernameClose');
 
       let currentUserPermissions = [];
       let currentUserRole = 'admin';
+
+      // Password visibility toggle
+      togglePasswordBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const type = adminPassword.type === 'password' ? 'text' : 'password';
+        adminPassword.type = type;
+        togglePasswordBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+      });
+
+      // Forgot Password Modal
+      forgotPasswordBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetPasswordModal.classList.add('active');
+      });
+
+      resetPasswordClose.addEventListener('click', () => {
+        resetPasswordModal.classList.remove('active');
+        document.getElementById('resetPasswordError').style.display = 'none';
+      });
+
+      document.getElementById('submitResetPasswordBtn').addEventListener('click', async () => {
+        const username = document.getElementById('resetPasswordUsername').value.trim();
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmNewPassword').value;
+        const errorDiv = document.getElementById('resetPasswordError');
+
+        if (!username || !newPassword || !confirmPassword) {
+          errorDiv.innerText = 'All fields are required';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          errorDiv.innerText = 'Passwords do not match';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          errorDiv.innerText = 'Password must be at least 6 characters';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, new_password: newPassword })
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            resetPasswordModal.classList.remove('active');
+            alert('Password reset successfully. Please login with your new password.');
+            document.getElementById('resetPasswordUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+          } else {
+            errorDiv.innerText = result.error || 'Failed to reset password';
+            errorDiv.style.display = 'block';
+          }
+        } catch (err) {
+          errorDiv.innerText = 'Network error: ' + err.message;
+          errorDiv.style.display = 'block';
+        }
+      });
+
+      // Reset Username Modal
+      resetUsernameBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        resetUsernameModal.classList.add('active');
+      });
+
+      resetUsernameClose.addEventListener('click', () => {
+        resetUsernameModal.classList.remove('active');
+        document.getElementById('resetUsernameError').style.display = 'none';
+      });
+
+      document.getElementById('submitResetUsernameBtn').addEventListener('click', async () => {
+        const password = document.getElementById('resetUsernamePassword').value;
+        const newUsername = document.getElementById('newUsername').value.trim();
+        const confirmUsername = document.getElementById('confirmNewUsername').value.trim();
+        const errorDiv = document.getElementById('resetUsernameError');
+
+        if (!password || !newUsername || !confirmUsername) {
+          errorDiv.innerText = 'All fields are required';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        if (newUsername !== confirmUsername) {
+          errorDiv.innerText = 'Usernames do not match';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/admin/reset-username', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password, new_username: newUsername })
+          });
+
+          const result = await res.json();
+          if (res.ok) {
+            resetUsernameModal.classList.remove('active');
+            alert('Username reset successfully. Please login with your new username.');
+            document.getElementById('resetUsernamePassword').value = '';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('confirmNewUsername').value = '';
+          } else {
+            errorDiv.innerText = result.error || 'Failed to reset username';
+            errorDiv.style.display = 'block';
+          }
+        } catch (err) {
+          errorDiv.innerText = 'Network error: ' + err.message;
+          errorDiv.style.display = 'block';
+        }
+      });
+
+      // Close modals when clicking outside
+      window.addEventListener('click', (e) => {
+        if (e.target === resetPasswordModal) {
+          resetPasswordModal.classList.remove('active');
+        }
+        if (e.target === resetUsernameModal) {
+          resetUsernameModal.classList.remove('active');
+        }
+      });
 
       // Check Auth Status on Load
       checkAuthentication();

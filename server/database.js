@@ -536,6 +536,52 @@ async function updateRegistration(id, updates) {
   return { id, ...sanitized };
 }
 
+async function updateSubadminPassword(username, newPassword) {
+  const normalizedUsername = (username || '').toString().trim().toLowerCase();
+  const password_hash = hashPassword(newPassword);
+
+  if (usingAdminSDK) {
+    const snapshot = await db.collection('subadmins').where('username', '==', normalizedUsername).limit(1).get();
+    if (snapshot.empty) {
+      throw new Error('Subadmin not found');
+    }
+    const docRef = snapshot.docs[0].ref;
+    await docRef.update({ password_hash });
+  } else {
+    const { query, where, getDocs, doc, updateDoc } = require('firebase/firestore');
+    const q = query(collection(db, 'subadmins'), where('username', '==', normalizedUsername));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      throw new Error('Subadmin not found');
+    }
+    const docRef = doc(db, 'subadmins', snapshot.docs[0].id);
+    await updateDoc(docRef, { password_hash });
+  }
+}
+
+async function updateSubadminUsername(oldUsername, newUsername) {
+  const oldNormalized = (oldUsername || '').toString().trim().toLowerCase();
+  const newNormalized = (newUsername || '').toString().trim().toLowerCase();
+
+  if (usingAdminSDK) {
+    const snapshot = await db.collection('subadmins').where('username', '==', oldNormalized).limit(1).get();
+    if (snapshot.empty) {
+      throw new Error('Subadmin not found');
+    }
+    const docRef = snapshot.docs[0].ref;
+    await docRef.update({ username: newNormalized });
+  } else {
+    const { query, where, getDocs, doc, updateDoc, collection } = require('firebase/firestore');
+    const q = query(collection(db, 'subadmins'), where('username', '==', oldNormalized));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      throw new Error('Subadmin not found');
+    }
+    const docRef = doc(db, 'subadmins', snapshot.docs[0].id);
+    await updateDoc(docRef, { username: newNormalized });
+  }
+}
+
 module.exports = {
   initializeDB,
   checkPVCExists,
@@ -554,5 +600,7 @@ module.exports = {
   listSubadmins,
   hashPassword,
   verifyPassword,
-  updateRegistration
+  updateRegistration,
+  updateSubadminPassword,
+  updateSubadminUsername
 };
