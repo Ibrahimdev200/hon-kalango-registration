@@ -1,4 +1,8 @@
-require('dotenv').config();
+try {
+  require('dotenv').config();
+} catch (e) {
+  // dotenv not installed or not needed in this environment
+}
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -313,7 +317,7 @@ app.post('/api/admin/login', async (req, res) => {
   }
 
   const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
-  if (normalizedUsername === adminUsernameNormalized || normalizedUsername === 'admin' || normalizedUsername === '') {
+  if (normalizedUsername === adminUsernameNormalized || normalizedUsername === 'admin') {
     if (password === ADMIN_PASSWORD) {
       res.cookie(SESSION_COOKIE, getAdminSessionToken(), {
         httpOnly: true,
@@ -360,6 +364,72 @@ app.post('/api/admin/login', async (req, res) => {
   } catch (err) {
     console.error('Subadmin login error:', err);
     return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Google Auth config (frontend can check this endpoint)
+app.get('/api/admin/google-config', (req, res) => {
+  const clientId = process.env.ADMIN_GOOGLE_CLIENT_ID || null;
+  const allowedEmail = process.env.ADMIN_GOOGLE_EMAIL || null;
+  const allowedDomain = process.env.ADMIN_GOOGLE_DOMAIN || null;
+  return res.json({ enabled: !!clientId, client_id: clientId, allowed_email: allowedEmail, allowed_domain: allowedDomain });
+});
+
+// Google ID token based login
+app.post('/api/admin/google-login', async (req, res) => {
+  const { id_token } = req.body;
+  if (!id_token) return res.status(400).json({ error: 'id_token is required' });
+
+  try {
+    const https = require('https');
+    const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(id_token)}`;
+    const info = await new Promise((resolve, reject) => {
+      https.get(url, (resp) => {
+        let data = '';
+        resp.on('data', chunk => data += chunk);
+        resp.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      }).on('error', (err) => reject(err));
+    });
+
+    // tokeninfo returns email and email_verified
+    if (!info || !info.email_verified) {
+      return res.status(401).json({ error: 'Google account not verified' });
+    }
+
+    const allowedEmail = (process.env.ADMIN_GOOGLE_EMAIL || '').toString().trim().toLowerCase();
+    const allowedDomain = (process.env.ADMIN_GOOGLE_DOMAIN || '').toString().trim().toLowerCase();
+    const userEmail = (info.email || '').toString().trim().toLowerCase();
+
+    let allowed = false;
+    if (allowedEmail && userEmail === allowedEmail) allowed = true;
+    if (!allowed && allowedDomain && info.hd && info.hd.toString().trim().toLowerCase() === allowedDomain) allowed = true;
+
+    if (!allowed) return res.status(401).json({ error: 'Google account not authorized' });
+
+    // grant admin session
+    res.cookie(SESSION_COOKIE, getAdminSessionToken(), {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 3600000
+    });
+    res.cookie(SESSION_USER_COOKIE, adminUsernameNormalized, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 3600000
+    });
+
+    return res.json({ success: true, role: 'admin', permissions: ['view_registrations', 'edit_users', 'view_duplicates', 'view_referrals', 'export_csv', 'manage_subadmins'] });
+  } catch (err) {
+    console.error('Google login error:', err);
+    return res.status(500).json({ error: 'Failed to verify Google token' });
   }
 });
 

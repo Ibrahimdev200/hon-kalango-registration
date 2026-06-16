@@ -6,6 +6,8 @@
   <title>Admin Dashboard — Hon. Kalango Campaign</title>
   <!-- Favicon -->
   <link rel="icon" type="image/jpeg" href="sdp-logo.jpeg">
+  <!-- Font Awesome Icons for password visibility toggle -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="register-style.css">
   <style>
     /* Admin specific inline overrides */
@@ -159,9 +161,13 @@
       </div>
       <div class="form-group" style="text-align: left;">
         <label for="adminPassword">Password</label>
-        <input type="password" id="adminPassword" placeholder="Enter Campaign Password">
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input type="password" id="adminPassword" placeholder="Enter Campaign Password" style="flex:1;">
+          <button type="button" id="togglePasswordBtn" aria-label="Show password" style="background: transparent; border: none; cursor: pointer; color: var(--primary-green); font-size: 1.1rem;"><i class="fas fa-eye"></i></button>
+        </div>
       </div>
       <button class="btn btn-primary" id="loginBtn" style="width: 100%;">Access Database</button>
+      <div id="googleSignInContainer" style="margin-top:0.75rem; text-align:center;"></div>
     </div>
 
     <!-- MAIN DASHBOARD -->
@@ -414,7 +420,19 @@
       const logoutBtn = document.getElementById('logoutBtn');
       const adminUsername = document.getElementById('adminUsername');
       const adminPassword = document.getElementById('adminPassword');
+      const togglePasswordBtn = document.getElementById('togglePasswordBtn');
       const loginError = document.getElementById('loginError');
+
+      // Password visibility toggle
+      if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const type = adminPassword.type === 'password' ? 'text' : 'password';
+          adminPassword.type = type;
+          togglePasswordBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+          togglePasswordBtn.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
+        });
+      }
 
       let currentUserPermissions = [];
       let currentUserRole = 'admin';
@@ -467,8 +485,13 @@
 
       // Login trigger
       loginBtn.addEventListener('click', async () => {
-        const username = adminUsername.value.trim() || 'kmk1995';
+        const username = adminUsername.value.trim();
         const password = adminPassword.value;
+        if (!username) {
+          loginError.innerText = 'Username is required.';
+          loginError.style.display = 'block';
+          return;
+        }
         if (!password) {
           loginError.innerText = 'Password cannot be empty.';
           loginError.style.display = 'block';
@@ -513,6 +536,8 @@
             adminPassword.value = '';
             currentUserPermissions = result.permissions || [];
             currentUserRole = result.role || 'admin';
+            // If google sign-in was rendered, remove it to avoid confusion
+            const gs = document.getElementById('googleSignInContainer'); if (gs) gs.innerHTML = '';
             showDashboard();
           } else {
             loginError.innerText = result?.error || `Login failed (${res.status})`;
@@ -1003,6 +1028,53 @@
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#039;');
       }
+
+      // Attempt to enable Google Sign-In if server provides config
+      (async function enableGoogleSignIn() {
+        try {
+          const res = await fetch('/api/admin/google-config');
+          if (!res.ok) return;
+          const cfg = await res.json();
+          if (!cfg || !cfg.enabled || !cfg.client_id) return;
+
+          // load GIS script
+          const script = document.createElement('script');
+          script.src = 'https://accounts.google.com/gsi/client';
+          script.async = true; script.defer = true;
+          script.onload = () => {
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+              window.google.accounts.id.initialize({
+                client_id: cfg.client_id,
+                callback: async (resp) => {
+                  if (!resp || !resp.credential) return;
+                  try {
+                    const r = await fetch('/api/admin/google-login', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ id_token: resp.credential })
+                    });
+                    const j = await r.json();
+                    if (r.ok) {
+                      window.location.reload();
+                    } else {
+                      alert('Google login failed: ' + (j.error || 'Unauthorized'));
+                    }
+                  } catch (err) {
+                    console.error('Google login fetch error', err);
+                  }
+                }
+              });
+              const container = document.getElementById('googleSignInContainer');
+              if (container) {
+                window.google.accounts.id.renderButton(container, { theme: 'outline', size: 'large' });
+              }
+            }
+          };
+          document.head.appendChild(script);
+        } catch (err) {
+          console.error('Google sign-in not enabled', err);
+        }
+      })();
     });
   </script>
 </body>
