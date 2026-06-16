@@ -304,7 +304,11 @@ async function getRegistrations(params = {}) {
     list = list.filter(r => 
       (r.full_name && r.full_name.toLowerCase().includes(term)) ||
       (r.phone_number && r.phone_number.toLowerCase().includes(term)) ||
-      (r.member_id && r.member_id.toLowerCase().includes(term))
+      (r.member_id && r.member_id.toLowerCase().includes(term)) ||
+      (r.pvc && r.pvc.toLowerCase().includes(term)) ||
+      (r.account_number && r.account_number.toLowerCase().includes(term)) ||
+      (r.pvc_masked && r.pvc_masked.toLowerCase().includes(term)) ||
+      (r.account_num_masked && r.account_num_masked.toLowerCase().includes(term))
     );
   }
 
@@ -434,6 +438,104 @@ function getDBStatus() {
   };
 }
 
+async function createSubadmin({ username, password, permissions = [] }) {
+  const password_hash = hashPassword(password);
+  const docData = {
+    username,
+    password_hash,
+    permissions,
+    active: true,
+    created_at: new Date().toISOString()
+  };
+
+  if (usingAdminSDK) {
+    const docRef = await db.collection('subadmins').add(docData);
+    return { id: docRef.id, ...docData };
+  } else {
+    const { collection, addDoc } = require('firebase/firestore');
+    const docRef = await addDoc(collection(db, 'subadmins'), docData);
+    return { id: docRef.id, ...docData };
+  }
+}
+
+async function getSubadminByUsername(username) {
+  if (!username) return null;
+  const normalized = username.toString().trim().toLowerCase();
+
+  if (usingAdminSDK) {
+    const snapshot = await db.collection('subadmins').where('username', '==', normalized).limit(1).get();
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
+  } else {
+    const { query, collection, where, limit, getDocs } = require('firebase/firestore');
+    const q = query(collection(db, 'subadmins'), where('username', '==', normalized), limit(1));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
+  }
+}
+
+async function listSubadmins() {
+  const list = [];
+  if (usingAdminSDK) {
+    const snapshot = await db.collection('subadmins').orderBy('created_at', 'desc').get();
+    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+  } else {
+    const { collection, orderBy, query, getDocs } = require('firebase/firestore');
+    const q = query(collection(db, 'subadmins'), orderBy('created_at', 'desc'));
+    const snapshot = await getDocs(q);
+    snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+  }
+  return list;
+}
+
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function verifyPassword(password, hash) {
+  if (!password || !hash) return false;
+  return hashPassword(password) === hash;
+}
+
+async function updateRegistration(id, updates) {
+  const allowedFields = [
+    'full_name', 'phone_number', 'email', 'gender', 'dob', 'ward', 'community',
+    'polling_unit', 'employment_status', 'occupation', 'skill_interest', 'education_level',
+    'pvc', 'bank_name', 'account_number', 'account_name', 'is_verified', 'bringing_count'
+  ];
+
+  const sanitized = {};
+  allowedFields.forEach(field => {
+    if (Object.prototype.hasOwnProperty.call(updates, field)) {
+      sanitized[field] = updates[field];
+    }
+  });
+
+  if (Object.prototype.hasOwnProperty.call(sanitized, 'pvc')) {
+    sanitized.pvc_hash = hashValue(sanitized.pvc);
+    sanitized.pvc_masked = maskValue(sanitized.pvc, 3);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(sanitized, 'account_number')) {
+    sanitized.account_num_hash = hashValue(sanitized.account_number);
+    sanitized.account_num_masked = maskValue(sanitized.account_number, 3);
+  }
+
+  if (usingAdminSDK) {
+    const docRef = db.collection('registrations').doc(id);
+    await docRef.update(sanitized);
+  } else {
+    const { doc, updateDoc } = require('firebase/firestore');
+    const docRef = doc(db, 'registrations', id);
+    await updateDoc(docRef, sanitized);
+  }
+
+  return { id, ...sanitized };
+}
+
 module.exports = {
   initializeDB,
   checkPVCExists,
@@ -446,5 +548,11 @@ module.exports = {
   verifyMember,
   getReferralNetwork,
   hashValue,
-  getDBStatus
+  getDBStatus,
+  createSubadmin,
+  getSubadminByUsername,
+  listSubadmins,
+  hashPassword,
+  verifyPassword,
+  updateRegistration
 };

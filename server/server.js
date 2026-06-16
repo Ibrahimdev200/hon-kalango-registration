@@ -2,18 +2,57 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const crypto = require('crypto');
 const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Setup session constants
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Kalango2027!';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || '@dherinosha2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '@korede2026';
 const SESSION_COOKIE = 'hon_kalango_session';
+const SESSION_USER_COOKIE = 'hon_kalango_user';
 const SESSION_SECRET = 'kalango_secret_session_key_2027';
+
+function generateSessionToken(username, secret) {
+  return crypto.createHash('sha256').update(`${username}:${secret}:${SESSION_SECRET}`).digest('hex');
+}
+
+function getAdminSessionToken() {
+  return generateSessionToken(ADMIN_USERNAME.toString().trim().toLowerCase(), ADMIN_PASSWORD);
+}
 
 app.use(express.json());
 app.use(cookieParser());
+
+// Support Netlify function path rewriting and CORS preflight for API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith('/.netlify/functions/api/')) {
+    req.url = req.url.replace(/^\/\.netlify\/functions\/api/, '/api');
+    req.path = req.path.replace(/^\/\.netlify\/functions\/api/, '/api');
+  }
+
+  if (req.path.startsWith('/api/index.js/')) {
+    req.url = req.url.replace(/^\/api\/index\.js/, '');
+    req.path = req.path.replace(/^\/api\/index\.js/, '');
+  } else if (req.path === '/api/index.js') {
+    const originalUrl = req.headers['x-vercel-original-url'] || req.headers['x-now-original-url'] || req.headers['x-original-url'] || req.headers['x-rewrite-url'];
+    if (originalUrl) {
+      req.url = originalUrl;
+      req.path = originalUrl;
+    }
+  }
+
+  if (req.method === 'OPTIONS' && req.path.startsWith('/api/')) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 // Diagnostic route to check backend environment and database status
 app.get('/api/diagnose', async (req, res) => {
@@ -71,13 +110,50 @@ app.use(async (req, res, next) => {
 app.use(express.static(path.join(__dirname, '..')));
 
 // Middleware to check authentication
-function authorizeAdmin(req, res, next) {
+async function authorizeAdmin(req, res, next) {
   const sessionToken = req.cookies[SESSION_COOKIE];
-  if (sessionToken === SESSION_SECRET) {
-    next();
-  } else {
-    res.status(401).json({ error: 'Unauthorized' });
+  const sessionUser = req.cookies[SESSION_USER_COOKIE];
+
+  if (!sessionToken || !sessionUser) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
+
+  const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
+  if ((sessionUser === adminUsernameNormalized || sessionUser === 'admin') && sessionToken === getAdminSessionToken()) {
+    req.authUser = {
+      username: 'admin',
+      role: 'admin',
+      permissions: ['view_registrations', 'edit_users', 'view_duplicates', 'view_referrals', 'export_csv', 'manage_subadmins']
+    };
+    return next();
+  }
+
+  try {
+    const subadmin = await db.getSubadminByUsername(sessionUser);
+    if (!subadmin || !subadmin.active) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const expectedToken = generateSessionToken(subadmin.username, subadmin.password_hash);
+    if (sessionToken !== expectedToken) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    req.authUser = {
+      username: subadmin.username,
+      role: 'subadmin',
+      permissions: subadmin.permissions || []
+    };
+    return next();
+  } catch (err) {
+    console.error('Subadmin auth failure:', err);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+}
+
+function hasPermission(req, permission) {
+  if (!req.authUser) return false;
+  return req.authUser.role === 'admin' || req.authUser.permissions.includes(permission);
 }
 
 // Client IP retrieval helper
@@ -228,36 +304,158 @@ app.post('/api/register', async (req, res) => {
 });
 
 // 3. Admin Login
-app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-  if (password === ADMIN_PASSWORD) {
-    res.cookie(SESSION_COOKIE, SESSION_SECRET, {
-      httpOnly: true,
-      secure: false, // Set to true if using HTTPS
-      sameSite: 'strict',
-      maxAge: 3600000 // 1 hour session
-    });
-    return res.json({ success: true, message: 'Logged in successfully' });
+app.post('/api/admin/login', async (req, res) => {
+  const { username, password } = req.body;
+  const normalizedUsername = (username || '').toString().trim().toLowerCase();
+
+  if (!password) {
+    return res.status(400).json({ error: 'Password is required' });
   }
-  return res.status(401).json({ error: 'Invalid admin password' });
+
+  const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
+  if (normalizedUsername === adminUsernameNormalized || normalizedUsername === 'admin' || normalizedUsername === '') {
+    if (password === ADMIN_PASSWORD) {
+      res.cookie(SESSION_COOKIE, getAdminSessionToken(), {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'strict',
+        maxAge: 3600000
+      });
+      res.cookie(SESSION_USER_COOKIE, adminUsernameNormalized, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'strict',
+        maxAge: 3600000
+      });
+      return res.json({ success: true, role: 'admin', permissions: ['view_registrations', 'edit_users', 'view_duplicates', 'view_referrals', 'export_csv', 'manage_subadmins'] });
+    }
+    return res.status(401).json({ error: 'Invalid admin credentials' });
+  }
+
+  try {
+    const subadmin = await db.getSubadminByUsername(normalizedUsername);
+    if (!subadmin || !subadmin.active) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (!db.verifyPassword(password, subadmin.password_hash)) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const sessionToken = generateSessionToken(subadmin.username, subadmin.password_hash);
+    res.cookie(SESSION_COOKIE, sessionToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 3600000
+    });
+    res.cookie(SESSION_USER_COOKIE, subadmin.username, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 3600000
+    });
+
+    return res.json({ success: true, role: 'subadmin', permissions: subadmin.permissions || [] });
+  } catch (err) {
+    console.error('Subadmin login error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // 4. Admin Logout
 app.post('/api/admin/logout', (req, res) => {
   res.clearCookie(SESSION_COOKIE);
+  res.clearCookie(SESSION_USER_COOKIE);
   res.json({ success: true });
 });
 
 // 5. Check Auth status
-app.get('/api/admin/check-auth', (req, res) => {
+app.get('/api/admin/check-auth', async (req, res) => {
   const token = req.cookies[SESSION_COOKIE];
-  if (token === SESSION_SECRET) {
-    return res.json({ authenticated: true });
+  const username = (req.cookies[SESSION_USER_COOKIE] || '').toString().trim().toLowerCase();
+
+  if (!token || !username) {
+    return res.json({ authenticated: false });
   }
-  return res.json({ authenticated: false });
+
+  const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
+  if ((username === adminUsernameNormalized || username === 'admin') && token === getAdminSessionToken()) {
+    return res.json({ authenticated: true, role: 'admin', permissions: ['view_registrations', 'edit_users', 'view_duplicates', 'view_referrals', 'export_csv', 'manage_subadmins'] });
+  }
+
+  try {
+    const subadmin = await db.getSubadminByUsername(username);
+    if (!subadmin || !subadmin.active) {
+      return res.json({ authenticated: false });
+    }
+
+    const expectedToken = generateSessionToken(subadmin.username, subadmin.password_hash);
+    if (token !== expectedToken) {
+      return res.json({ authenticated: false });
+    }
+
+    return res.json({ authenticated: true, role: 'subadmin', permissions: subadmin.permissions || [] });
+  } catch (err) {
+    console.error('Auth status error:', err);
+    return res.json({ authenticated: false });
+  }
 });
 
-// 6. Get Registrations (Filtered)
+// 6. Create Sub-admin
+app.post('/api/admin/subadmins', authorizeAdmin, async (req, res) => {
+  if (!hasPermission(req, 'manage_subadmins')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  try {
+    const { username, password, permissions = [] } = req.body;
+    const normalizedUsername = (username || '').toString().trim().toLowerCase();
+    if (!normalizedUsername || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    const subadmin = await db.createSubadmin({ username: normalizedUsername, password, permissions });
+    return res.json({ success: true, subadmin });
+  } catch (err) {
+    console.error('Create subadmin error:', err);
+    res.status(500).json({ error: err.message || 'Internal Server Error' });
+  }
+});
+
+// 7. List Sub-admins
+app.get('/api/admin/subadmins', authorizeAdmin, async (req, res) => {
+  if (!hasPermission(req, 'manage_subadmins')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  try {
+    const subadmins = await db.listSubadmins();
+    res.json(subadmins);
+  } catch (err) {
+    console.error('List subadmins error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// 8. Update Registration
+app.put('/api/admin/registrations/:id', authorizeAdmin, async (req, res) => {
+  if (!hasPermission(req, 'edit_users')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const updated = await db.updateRegistration(id, updates);
+    res.json({ success: true, updated });
+  } catch (err) {
+    console.error('Update registration error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// 9. Get Registrations (Filtered)
 app.get('/api/admin/registrations', authorizeAdmin, async (req, res) => {
   try {
     const list = await db.getRegistrations(req.query);

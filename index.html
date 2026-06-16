@@ -42,6 +42,7 @@
                     <li><a href="#home">Home</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#achievements">Achievements</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
                     <li><a href="#vision">Vision</a></li>
                     <li><a href="#manifesto">Manifesto</a></li>
                     <li><a href="#voter-education">Voter Guide</a></li>
@@ -164,6 +165,25 @@
                         <p>Championed the installation of solar-powered boreholes in remote communities, alleviating the chronic lack of potable water and reducing waterborne diseases.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="section gallery">
+        <div class="container">
+            <div class="section-header text-center reveal">
+                <span class="section-tag">Our Work</span>
+                <h2>Project Gallery</h2>
+                <p class="section-subtitle">Explore our community projects, outreach moments, and development achievements with a fresh, random selection every time you visit.</p>
+            </div>
+            <div class="gallery-copy reveal">
+                <p>Each image reflects a real initiative from our campaign and foundation — from clean water and health outreach to education, youth empowerment, and infrastructure delivery. Hover over a photo to read the story behind it, then click to view the full detail.</p>
+            </div>
+            <div class="gallery-grid" id="projectGallery" aria-live="polite"></div>
+            <div class="gallery-actions reveal gallery-button-group">
+                <button id="galleryPrev" class="btn btn-outline btn-glow">Previous Projects</button>
+                <button id="galleryNext" class="btn btn-primary btn-glow gallery-load-more-btn">Next Projects</button>
             </div>
         </div>
     </section>
@@ -564,6 +584,17 @@
             </div>
         </div>
     </footer>
+
+    <div class="gallery-modal" id="galleryModal" aria-hidden="true" role="dialog" aria-label="Project gallery preview">
+        <div class="gallery-modal-content">
+            <button class="modal-close" id="galleryModalClose" aria-label="Close preview">×</button>
+            <img src="" alt="" id="galleryModalImage">
+            <div class="gallery-modal-caption">
+                <h3 id="galleryModalTitle"></h3>
+                <p id="galleryModalDescription"></p>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

@@ -154,6 +154,10 @@
       <div class="form-alert form-alert-error" id="loginError"></div>
 
       <div class="form-group" style="text-align: left;">
+        <label for="adminUsername">Username</label>
+        <input type="text" id="adminUsername" placeholder="Admin or Sub-admin username">
+      </div>
+      <div class="form-group" style="text-align: left;">
         <label for="adminPassword">Password</label>
         <input type="password" id="adminPassword" placeholder="Enter Campaign Password">
       </div>
@@ -192,6 +196,7 @@
             <li class="active" data-panel="panel-directory">Members Directory</li>
             <li data-panel="panel-duplicates">Flagged Duplicates</li>
             <li data-panel="panel-referrals">Referral Chains</li>
+            <li data-panel="panel-subadmins">Sub-admin Management</li>
           </ul>
         </div>
 
@@ -309,6 +314,44 @@
             </div>
           </div>
 
+          <div class="dashboard-panel" id="panel-subadmins">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Sub-admin Management</h2>
+            <p style="color: var(--text-gray); margin-bottom: 1.5rem;">Create and control sub-admin access rights. Only active sub-admins can perform actions you approve.</p>
+
+            <div class="form-group" style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+              <div style="display: grid; gap: 0.75rem;">
+                <label for="subadminUsername">Sub-admin Username</label>
+                <input type="text" id="subadminUsername" placeholder="Enter username">
+              </div>
+              <div style="display: grid; gap: 0.75rem;">
+                <label for="subadminPassword">Password</label>
+                <input type="password" id="subadminPassword" placeholder="Enter password">
+              </div>
+              <fieldset style="border: 1px solid rgba(255,255,255,0.12); padding: 1rem; border-radius: 16px;">
+                <legend style="font-weight:700; color:var(--primary-gold);">Permissions</legend>
+                <label><input type="checkbox" id="permViewRegistrations"> View Registrations</label><br>
+                <label><input type="checkbox" id="permEditUsers"> Edit Member Information</label><br>
+                <label><input type="checkbox" id="permViewDuplicates"> View Duplicate Flags</label><br>
+                <label><input type="checkbox" id="permViewReferrals"> View Referral Network</label><br>
+                <label><input type="checkbox" id="permExportCSV"> Export CSV Data</label>
+              </fieldset>
+              <button class="btn btn-primary" id="createSubadminBtn" style="width: fit-content;">Create Sub-admin</button>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Active</th>
+                    <th>Permissions</th>
+                  </tr>
+                </thead>
+                <tbody id="subadminsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -318,11 +361,37 @@
   <div class="modal" id="detailsModal">
     <div class="modal-content">
       <span class="modal-close" id="modalClose">&times;</span>
-      <h3 style="font-family: 'Cinzel', serif; border-bottom: 2px solid var(--primary-gold); padding-bottom: 0.5rem;" id="modalMemberId">Member details</h3>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+        <h3 style="font-family: 'Cinzel', serif; border-bottom: 2px solid var(--primary-gold); padding-bottom: 0.5rem;" id="modalMemberId">Member details</h3>
+        <button class="btn btn-glass" id="toggleEditBtn" type="button">Edit Member Info</button>
+      </div>
       
       <div class="details-grid" id="modalDetailsContainer">
         <!-- JS Populated details -->
       </div>
+
+      <form id="memberEditForm" style="display:none; margin-top: 1.5rem;" autocomplete="off">
+        <div style="display:grid; gap:1rem;">
+          <div style="display:grid; gap:0.75rem;"><label>Full Name</label><input type="text" id="editFullName"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Phone Number</label><input type="text" id="editPhoneNumber"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Email</label><input type="text" id="editEmail"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Voter's Card Number</label><input type="text" id="editPVC"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Bank Account</label><input type="text" id="editAccountNumber"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Bank Name</label><input type="text" id="editBankName"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Account Name</label><input type="text" id="editAccountName"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Ward</label><input type="text" id="editWard"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Polling Unit</label><input type="text" id="editPollingUnit"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Community</label><input type="text" id="editCommunity"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Gender</label><input type="text" id="editGender"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Date of Birth</label><input type="date" id="editDob"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Employment Status</label><input type="text" id="editEmploymentStatus"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Occupation</label><input type="text" id="editOccupation"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Education Level</label><input type="text" id="editEducationLevel"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Skill Interest</label><input type="text" id="editSkillInterest"></div>
+          <div style="display:grid; gap:0.75rem;"><label>Verified</label><select id="editVerified"><option value="0">Pending</option><option value="1">Verified</option></select></div>
+        </div>
+        <button class="btn btn-primary" id="saveMemberBtn" type="button" style="margin-top:1rem; width: fit-content;">Save Changes</button>
+      </form>
     </div>
   </div>
 
@@ -343,8 +412,12 @@
       const dashboardScreen = document.getElementById('dashboardScreen');
       const loginBtn = document.getElementById('loginBtn');
       const logoutBtn = document.getElementById('logoutBtn');
+      const adminUsername = document.getElementById('adminUsername');
       const adminPassword = document.getElementById('adminPassword');
       const loginError = document.getElementById('loginError');
+
+      let currentUserPermissions = [];
+      let currentUserRole = 'admin';
 
       // Check Auth Status on Load
       checkAuthentication();
@@ -354,6 +427,8 @@
           const res = await fetch('/api/admin/check-auth');
           const data = await res.json();
           if (data.authenticated) {
+            currentUserPermissions = data.permissions || [];
+            currentUserRole = data.role || 'admin';
             showDashboard();
           } else {
             showLogin();
@@ -374,15 +449,25 @@
         loginScreen.style.display = 'none';
         dashboardScreen.style.display = 'block';
         logoutBtn.style.display = 'inline-block';
+
+        const subadminTab = document.querySelector('[data-panel="panel-subadmins"]');
+        if (subadminTab) {
+          subadminTab.style.display = currentUserPermissions.includes('manage_subadmins') ? 'block' : 'none';
+        }
+
         // Load initial data
         loadStats();
         loadMembers();
         loadDuplicates();
         loadReferrals();
+        if (currentUserPermissions.includes('manage_subadmins')) {
+          loadSubadmins();
+        }
       }
 
       // Login trigger
       loginBtn.addEventListener('click', async () => {
+        const username = adminUsername.value.trim() || '@dherinosha2026';
         const password = adminPassword.value;
         if (!password) {
           loginError.innerText = 'Password cannot be empty.';
@@ -390,25 +475,54 @@
           return;
         }
 
+        if (window.location.protocol === 'file:') {
+          loginError.innerText = 'Open this admin page through the local server URL, not directly from the file system.';
+          loginError.style.display = 'block';
+          return;
+        }
+
         try {
-          const res = await fetch('/api/admin/login', {
+          const loginUrl = '/api/admin/login';
+          const res = await fetch(loginUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
+            body: JSON.stringify({ username, password })
           });
-          const result = await res.json();
+
+          console.log('Admin login request', { loginUrl, username });
+          console.log('Admin login response status', res.status, res.statusText);
+
+          const responseText = await res.text();
+          let result = { error: `Server returned status ${res.status}` };
+          const contentType = res.headers.get('content-type') || '';
+
+          if (responseText) {
+            if (contentType.includes('application/json')) {
+              try {
+                result = JSON.parse(responseText);
+              } catch (parseErr) {
+                result = { error: `Malformed JSON from server: ${responseText}` };
+              }
+            } else {
+              result = { error: responseText };
+            }
+          }
 
           if (res.ok) {
             loginError.style.display = 'none';
             adminPassword.value = '';
+            currentUserPermissions = result.permissions || [];
+            currentUserRole = result.role || 'admin';
             showDashboard();
           } else {
-            loginError.innerText = result.error || 'Login failed.';
+            loginError.innerText = result?.error || `Login failed (${res.status})`;
             loginError.style.display = 'block';
           }
         } catch (err) {
           console.error(err);
-          loginError.innerText = 'Network error occurred.';
+          loginError.innerText = err.message.includes('Failed to fetch')
+            ? 'Unable to reach the backend server. Confirm the admin dashboard is served from the app server.'
+            : `Login error: ${err.message}`;
           loginError.style.display = 'block';
         }
       });
@@ -448,8 +562,62 @@
         });
       });
 
+      // Sub-admin panel controls
+      const subadminUsernameField = document.getElementById('subadminUsername');
+      const subadminPasswordField = document.getElementById('subadminPassword');
+      const permViewRegistrations = document.getElementById('permViewRegistrations');
+      const permEditUsers = document.getElementById('permEditUsers');
+      const permViewDuplicates = document.getElementById('permViewDuplicates');
+      const permViewReferrals = document.getElementById('permViewReferrals');
+      const permExportCSV = document.getElementById('permExportCSV');
+      const createSubadminBtn = document.getElementById('createSubadminBtn');
+
+      if (createSubadminBtn) {
+        createSubadminBtn.addEventListener('click', async () => {
+          const username = subadminUsernameField.value.trim();
+          const password = subadminPasswordField.value;
+          if (!username || !password) {
+            alert('Please enter both username and password for the sub-admin.');
+            return;
+          }
+
+          const permissions = [];
+          if (permViewRegistrations.checked) permissions.push('view_registrations');
+          if (permEditUsers.checked) permissions.push('edit_users');
+          if (permViewDuplicates.checked) permissions.push('view_duplicates');
+          if (permViewReferrals.checked) permissions.push('view_referrals');
+          if (permExportCSV.checked) permissions.push('export_csv');
+
+          try {
+            const res = await fetch('/api/admin/subadmins', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password, permissions })
+            });
+            const result = await res.json();
+            if (res.ok) {
+              subadminUsernameField.value = '';
+              subadminPasswordField.value = '';
+              permViewRegistrations.checked = false;
+              permEditUsers.checked = false;
+              permViewDuplicates.checked = false;
+              permViewReferrals.checked = false;
+              permExportCSV.checked = false;
+              loadSubadmins();
+              alert('Sub-admin created successfully.');
+            } else {
+              alert(result.error || 'Unable to create sub-admin.');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Network error while creating sub-admin.');
+          }
+        });
+      }
+
       // Global datasets stored locally for modal viewing
       let membersData = [];
+      let currentMemberEditId = null;
 
       // API: Load Stats
       async function loadStats() {
@@ -605,8 +773,126 @@
         `;
 
         document.getElementById('modalDetailsContainer').innerHTML = detailsHTML;
+        currentMemberEditId = member.id;
+        const toggleEditBtn = document.getElementById('toggleEditBtn');
+        if (toggleEditBtn) {
+          toggleEditBtn.style.display = currentUserPermissions.includes('edit_users') ? 'inline-block' : 'none';
+        }
+        const editForm = document.getElementById('memberEditForm');
+        if (editForm) {
+          editForm.style.display = 'none';
+        }
         detailsModal.classList.add('active');
       };
+
+      document.getElementById('toggleEditBtn').addEventListener('click', () => {
+        const form = document.getElementById('memberEditForm');
+        if (!form) return;
+        const isVisible = form.style.display === 'grid' || form.style.display === 'block';
+        if (isVisible) {
+          form.style.display = 'none';
+          return;
+        }
+
+        const member = membersData.find(m => m.id === currentMemberEditId);
+        if (!member) return;
+
+        document.getElementById('editFullName').value = member.full_name || '';
+        document.getElementById('editPhoneNumber').value = member.phone_number || '';
+        document.getElementById('editEmail').value = member.email || '';
+        document.getElementById('editPVC').value = member.pvc || member.pvc_masked || '';
+        document.getElementById('editAccountNumber').value = member.account_number || member.account_num_masked || '';
+        document.getElementById('editBankName').value = member.bank_name || '';
+        document.getElementById('editAccountName').value = member.account_name || '';
+        document.getElementById('editWard').value = member.ward || '';
+        document.getElementById('editPollingUnit').value = member.polling_unit || '';
+        document.getElementById('editCommunity').value = member.community || '';
+        document.getElementById('editGender').value = member.gender || '';
+        document.getElementById('editDob').value = member.dob || '';
+        document.getElementById('editEmploymentStatus').value = member.employment_status || '';
+        document.getElementById('editOccupation').value = member.occupation || '';
+        document.getElementById('editEducationLevel').value = member.education_level || '';
+        document.getElementById('editSkillInterest').value = member.skill_interest || '';
+        document.getElementById('editVerified').value = member.is_verified ? '1' : '0';
+        form.style.display = 'grid';
+      });
+
+      document.getElementById('saveMemberBtn').addEventListener('click', async () => {
+        if (!currentMemberEditId) return;
+        const payload = {
+          full_name: document.getElementById('editFullName').value.trim(),
+          phone_number: document.getElementById('editPhoneNumber').value.trim(),
+          email: document.getElementById('editEmail').value.trim(),
+          pvc: document.getElementById('editPVC').value.trim(),
+          account_number: document.getElementById('editAccountNumber').value.trim(),
+          bank_name: document.getElementById('editBankName').value.trim(),
+          account_name: document.getElementById('editAccountName').value.trim(),
+          ward: document.getElementById('editWard').value.trim(),
+          polling_unit: document.getElementById('editPollingUnit').value.trim(),
+          community: document.getElementById('editCommunity').value.trim(),
+          gender: document.getElementById('editGender').value.trim(),
+          dob: document.getElementById('editDob').value,
+          employment_status: document.getElementById('editEmploymentStatus').value.trim(),
+          occupation: document.getElementById('editOccupation').value.trim(),
+          education_level: document.getElementById('editEducationLevel').value.trim(),
+          skill_interest: document.getElementById('editSkillInterest').value.trim(),
+          is_verified: Number(document.getElementById('editVerified').value)
+        };
+
+        try {
+          const res = await fetch(`/api/admin/registrations/${currentMemberEditId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            alert('Member updated successfully.');
+            loadMembers();
+            loadStats();
+            document.getElementById('memberEditForm').style.display = 'none';
+            detailsModal.classList.remove('active');
+          } else {
+            const error = await res.json();
+            alert(error.error || 'Unable to update member.');
+          }
+        } catch (err) {
+          console.error('Update member error:', err);
+          alert('Network error while saving member changes.');
+        }
+      });
+
+      async function loadSubadmins() {
+        try {
+          const res = await fetch('/api/admin/subadmins');
+          if (!res.ok) {
+            throw new Error('Failed to load subadmins');
+          }
+          const subadmins = await res.json();
+          const body = document.getElementById('subadminsTableBody');
+          body.innerHTML = '';
+          if (!Array.isArray(subadmins) || subadmins.length === 0) {
+            body.innerHTML = '<tr><td colspan="3" style="text-align:center;">No sub-admins created yet.</td></tr>';
+            return;
+          }
+          subadmins.forEach(sub => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${escapeHTML(sub.username)}</td>
+              <td>${sub.active ? 'Yes' : 'No'}</td>
+              <td>${escapeHTML((sub.permissions || []).join(', ') || 'None')}</td>
+            `;
+            body.appendChild(tr);
+          });
+        } catch (err) {
+          console.error('Error loading subadmins:', err);
+        }
+      }
+
+      detailsModal.addEventListener('click', (event) => {
+        if (event.target === detailsModal) {
+          detailsModal.classList.remove('active');
+        }
+      });
 
       // API: Load Flagged Duplicates Log
       async function loadDuplicates() {
