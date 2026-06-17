@@ -182,12 +182,9 @@ header.scrolled {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 30px;
     padding-top: 20px;
     padding-bottom: 20px;
     transition: var(--transition);
-    flex-wrap: wrap;
-    min-height: auto;
 }
 
 header.scrolled .nav-container {
@@ -248,10 +245,7 @@ header.scrolled .nav-container {
 .nav-links {
     display: flex;
     list-style: none;
-    gap: 20px;
-    flex-wrap: nowrap;
-    justify-content: center;
-    align-items: center;
+    gap: 35px;
 }
 
 .nav-links li a {
@@ -259,13 +253,12 @@ header.scrolled .nav-container {
     text-decoration: none;
     font-family: var(--font-heading);
     font-weight: 500;
-    font-size: 13px;
+    font-size: 14px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     transition: var(--transition);
     position: relative;
-    padding: 5px 8px;
-    white-space: nowrap;
+    padding: 5px 0;
 }
 
 .nav-links li a::after {
@@ -291,15 +284,15 @@ header.scrolled .nav-container {
 
 /* Custom styles for the "Join The Movement" CTA button in the header */
 .nav-join-btn {
-    padding: 8px 18px !important;
-    border-radius: 25px;
+    padding: 10px 24px !important;
+    border-radius: 30px;
     background: linear-gradient(135deg, var(--secondary-color) 0%, #ff8c00 50%, var(--secondary-color) 100%);
     background-size: 200% auto;
     color: var(--primary-dark) !important;
     font-weight: 700 !important;
-    font-size: 11px !important;
+    font-size: 13px !important;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     box-shadow: 0 4px 15px rgba(255, 184, 0, 0.4);
     display: inline-block;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -309,7 +302,6 @@ header.scrolled .nav-container {
     z-index: 1;
     animation: gradientMove 4s ease infinite, pulseGlow 2.5s infinite alternate;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    flex-shrink: 0;
 }
 
 /* Override underline effect for the button */
@@ -1428,24 +1420,6 @@ footer {
 }
 
 @media (max-width: 1024px) {
-    .nav-links {
-        gap: 15px;
-    }
-    
-    .nav-links li a {
-        font-size: 12px;
-        padding: 5px 6px;
-    }
-    
-    .party-logo {
-        width: 56px;
-        height: 56px;
-    }
-    
-    .logo-text {
-        font-size: 24px;
-    }
-    
     .gallery-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1486,13 +1460,11 @@ footer {
         -webkit-backdrop-filter: blur(20px);
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
-        gap: 30px;
-        padding-top: 100px;
-        transition: right 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        justify-content: center;
+        gap: 40px;
+        transition: 0.5s ease;
         z-index: 1000;
         border-left: 1px solid var(--glass-border);
-        overflow-y: auto;
     }
     
     .nav-links.active {
