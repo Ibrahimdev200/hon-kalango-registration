@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 3000;
 // Setup session constants
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'kmk1995';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'saapade@55';
+// Support hashed admin password via env (recommended). Falls back to hash of ADMIN_PASSWORD.
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || crypto.createHash('sha256').update(ADMIN_PASSWORD).digest('hex');
 const SESSION_COOKIE = 'hon_kalango_session';
 const SESSION_USER_COOKIE = 'hon_kalango_user';
 const SESSION_SECRET = 'kalango_secret_session_key_2027';
@@ -24,7 +26,7 @@ function generateSessionToken(username, secret) {
 }
 
 function getAdminSessionToken() {
-  return generateSessionToken(ADMIN_USERNAME.toString().trim().toLowerCase(), ADMIN_PASSWORD);
+  return generateSessionToken(ADMIN_USERNAME.toString().trim().toLowerCase(), ADMIN_PASSWORD_HASH);
 }
 
 app.use(express.json());
@@ -318,7 +320,9 @@ app.post('/api/admin/login', async (req, res) => {
 
   const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
   if (normalizedUsername === adminUsernameNormalized || normalizedUsername === 'admin') {
-    if (password === ADMIN_PASSWORD) {
+    // Verify admin password using stored hash (preferred). Allow plain fallback for legacy setups.
+    const isAdminPasswordValid = (typeof db.verifyPassword === 'function' && db.verifyPassword(password, ADMIN_PASSWORD_HASH)) || password === ADMIN_PASSWORD;
+    if (isAdminPasswordValid) {
       res.cookie(SESSION_COOKIE, getAdminSessionToken(), {
         httpOnly: true,
         secure: false,
@@ -419,6 +423,7 @@ app.post('/api/admin/google-login', async (req, res) => {
       sameSite: 'strict',
       maxAge: 3600000
     });
+    const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
     res.cookie(SESSION_USER_COOKIE, adminUsernameNormalized, {
       httpOnly: true,
       secure: false,
