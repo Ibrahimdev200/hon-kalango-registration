@@ -556,3 +556,40 @@ module.exports = {
   verifyPassword,
   updateRegistration
 };
+
+
+// Admin config helpers (store admin username and password_hash in 'config/admin' doc)
+async function getAdminConfig() {
+  if (usingAdminSDK) {
+    const docRef = db.collection('config').doc('admin');
+    const snap = await docRef.get();
+    if (!snap.exists) return null;
+    return snap.data();
+  } else {
+    const { doc, getDoc } = require('firebase/firestore');
+    const adminDoc = doc(db, 'config', 'admin');
+    const snap = await getDoc(adminDoc);
+    if (!snap.exists) return null;
+    return snap.data();
+  }
+}
+
+async function setAdminConfig({ username, password_hash }) {
+  const payload = {
+    username: (username || '').toString().trim().toLowerCase(),
+    password_hash: password_hash || '',
+    updated_at: new Date().toISOString()
+  };
+
+  if (usingAdminSDK) {
+    await db.collection('config').doc('admin').set(payload, { merge: true });
+  } else {
+    const { doc, setDoc } = require('firebase/firestore');
+    const adminDoc = doc(db, 'config', 'admin');
+    await setDoc(adminDoc, payload, { merge: true });
+  }
+  return payload;
+}
+
+module.exports.getAdminConfig = getAdminConfig;
+module.exports.setAdminConfig = setAdminConfig;

@@ -13,20 +13,41 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Setup session constants
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'kmk1995';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'saapade@55';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'kmk_admin_9b3f2a';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '9Vx$T7qL!a3mZc4P';
 // Support hashed admin password via env (recommended). Falls back to hash of ADMIN_PASSWORD.
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || crypto.createHash('sha256').update(ADMIN_PASSWORD).digest('hex');
 const SESSION_COOKIE = 'hon_kalango_session';
 const SESSION_USER_COOKIE = 'hon_kalango_user';
 const SESSION_SECRET = 'kalango_secret_session_key_2027';
 
+// Runtime admin config (may be overridden by DB-stored config)
+let ADMIN_CONFIG = {
+  username: ADMIN_USERNAME.toString().trim().toLowerCase(),
+  password_hash: ADMIN_PASSWORD_HASH
+};
+
 function generateSessionToken(username, secret) {
   return crypto.createHash('sha256').update(`${username}:${secret}:${SESSION_SECRET}`).digest('hex');
 }
 
-function getAdminSessionToken() {
-  return generateSessionToken(ADMIN_USERNAME.toString().trim().toLowerCase(), ADMIN_PASSWORD_HASH);
+function getAdminSessionToken(username, password_hash) {
+  const u = (username || ADMIN_CONFIG.username || ADMIN_USERNAME).toString().trim().toLowerCase();
+  const p = password_hash || ADMIN_CONFIG.password_hash || ADMIN_PASSWORD_HASH;
+  return generateSessionToken(u, p);
+}
+
+async function loadAdminConfigFromDB() {
+  if (typeof db.getAdminConfig !== 'function') return;
+  try {
+    const cfg = await db.getAdminConfig();
+    if (cfg && cfg.username && cfg.password_hash) {
+      ADMIN_CONFIG.username = cfg.username.toString().trim().toLowerCase();
+      ADMIN_CONFIG.password_hash = cfg.password_hash;
+    }
+  } catch (err) {
+    console.warn('Unable to load admin config from DB:', err && err.message ? err.message : err);
+  }
 }
 
 app.use(express.json());
@@ -117,6 +138,7 @@ app.use(express.static(path.join(__dirname, '..')));
 
 // Middleware to check authentication
 async function authorizeAdmin(req, res, next) {
+  await loadAdminConfigFromDB();
   const sessionToken = req.cookies[SESSION_COOKIE];
   const sessionUser = req.cookies[SESSION_USER_COOKIE];
 
@@ -124,8 +146,8 @@ async function authorizeAdmin(req, res, next) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
-  if ((sessionUser === adminUsernameNormalized || sessionUser === 'admin') && sessionToken === getAdminSessionToken()) {
+  const adminUsernameNormalized = (ADMIN_CONFIG.username || ADMIN_USERNAME).toString().trim().toLowerCase();
+  if ((sessionUser === adminUsernameNormalized || sessionUser === 'admin') && sessionToken === getAdminSessionToken(adminUsernameNormalized, ADMIN_CONFIG.password_hash)) {
     req.authUser = {
       username: 'admin',
       role: 'admin',
@@ -318,12 +340,15 @@ app.post('/api/admin/login', async (req, res) => {
     return res.status(400).json({ error: 'Password is required' });
   }
 
-  const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
+  // Refresh admin config from DB before validating
+  await loadAdminConfigFromDB();
+  const adminUsernameNormalized = (ADMIN_CONFIG.username || ADMIN_USERNAME).toString().trim().toLowerCase();
   if (normalizedUsername === adminUsernameNormalized || normalizedUsername === 'admin') {
     // Verify admin password using stored hash (preferred). Allow plain fallback for legacy setups.
-    const isAdminPasswordValid = (typeof db.verifyPassword === 'function' && db.verifyPassword(password, ADMIN_PASSWORD_HASH)) || password === ADMIN_PASSWORD;
+    const adminPasswordHash = ADMIN_CONFIG.password_hash || ADMIN_PASSWORD_HASH;
+    const isAdminPasswordValid = (typeof db.verifyPassword === 'function' && db.verifyPassword(password, adminPasswordHash)) || password === ADMIN_PASSWORD;
     if (isAdminPasswordValid) {
-      res.cookie(SESSION_COOKIE, getAdminSessionToken(), {
+      res.cookie(SESSION_COOKIE, getAdminSessionToken(adminUsernameNormalized, adminPasswordHash), {
         httpOnly: true,
         secure: false,
         sameSite: 'strict',
@@ -416,14 +441,15 @@ app.post('/api/admin/google-login', async (req, res) => {
 
     if (!allowed) return res.status(401).json({ error: 'Google account not authorized' });
 
-    // grant admin session
-    res.cookie(SESSION_COOKIE, getAdminSessionToken(), {
+    // Refresh admin config and grant admin session
+    await loadAdminConfigFromDB();
+    const adminUsernameNormalized = (ADMIN_CONFIG.username || ADMIN_USERNAME).toString().trim().toLowerCase();
+    res.cookie(SESSION_COOKIE, getAdminSessionToken(adminUsernameNormalized, ADMIN_CONFIG.password_hash), {
       httpOnly: true,
       secure: false,
       sameSite: 'strict',
       maxAge: 3600000
     });
-    const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
     res.cookie(SESSION_USER_COOKIE, adminUsernameNormalized, {
       httpOnly: true,
       secure: false,
@@ -454,8 +480,9 @@ app.get('/api/admin/check-auth', async (req, res) => {
     return res.json({ authenticated: false });
   }
 
-  const adminUsernameNormalized = ADMIN_USERNAME.toString().trim().toLowerCase();
-  if ((username === adminUsernameNormalized || username === 'admin') && token === getAdminSessionToken()) {
+  await loadAdminConfigFromDB();
+  const adminUsernameNormalized = (ADMIN_CONFIG.username || ADMIN_USERNAME).toString().trim().toLowerCase();
+  if ((username === adminUsernameNormalized || username === 'admin') && token === getAdminSessionToken(adminUsernameNormalized, ADMIN_CONFIG.password_hash)) {
     return res.json({ authenticated: true, role: 'admin', permissions: ['view_registrations', 'edit_users', 'view_duplicates', 'view_referrals', 'export_csv', 'manage_subadmins'] });
   }
 

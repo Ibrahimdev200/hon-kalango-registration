@@ -5,7 +5,8 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "dev": "node server/server.js"
+    "dev": "node server/server.js",
+    "set-admin": "node scripts/set-admin.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.6",
